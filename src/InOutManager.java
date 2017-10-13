@@ -32,7 +32,7 @@ public class InOutManager {
                         int n = Integer.parseInt(args[2]);
                     }
                     catch (NumberFormatException invalidN) {
-                        logger.log("invalid format for argument[3]: " + invalidN.getMessage());
+                        logger.log("invalid format for argument[2]: " + invalidN.getMessage());
                         return false;
                     }
 
