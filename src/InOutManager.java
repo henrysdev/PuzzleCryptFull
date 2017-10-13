@@ -1,10 +1,19 @@
 import java.io.File;
 
 public class InOutManager {
-    // TODO instantiate instance of DebugLogger
+    // attributes
+    public static DebugLogger logger;
+
+    public InOutManager () {
+        logger = new DebugLogger();
+    }
+
     public static void main (String[] args) {
         if (validateArguments(args)) {
-            System.out.println("VALID INPUT");
+            System.out.println("Operation Successful");
+        }
+        else {
+            System.out.println(logger.printLogs());
         }
     }
 
@@ -20,8 +29,7 @@ public class InOutManager {
                         int n = Integer.parseInt(args[2]);
                     }
                     catch (NumberFormatException invalidN) {
-                        // TODO replace print out with debug logger
-                        System.out.println("invalid format for argument[3]: " + invalidN.getMessage());
+                        logger.log("invalid format for argument[3]: " + invalidN.getMessage());
                         return false;
                     }
 
@@ -31,15 +39,13 @@ public class InOutManager {
                         return true;
                     }
                     else {
-                        // TODO replace print out with debug logger
-                        System.out.println("invalid input for argument[3]: insufficient password complexity");
+                        logger.log("invalid input for argument[3]: insufficient password complexity");
                         return false;
                     }
 
                 }
                 else {
-                    // TODO replace print out with debug logger
-                    System.out.println("invalid input for argument[2]: file not found.");
+                    logger.log("invalid input for argument[2]: file not found.");
                     return false;
                 }
 
@@ -55,22 +61,19 @@ public class InOutManager {
                         return true;
                     }
                     else {
-                        // TODO replace print out with debug logger
-                        System.out.println("invalid input for argument[2]: insufficient password complexity");
+                        logger.log("invalid input for argument[2]: insufficient password complexity");
                         return false;
                     }
                 }
                 else {
-                    // TODO replace print out with debug logger
-                    System.out.println("invalid input for argument[1]: directory not found");
+                    logger.log("invalid input for argument[1]: directory not found");
                     return false;
                 }
 
 
             default:
                 // return false if first argument does not match any cases
-                // TODO replace print out with debug logger
-                System.out.println("invalid input for argument[0]: unrecognized command");
+                logger.log("invalid input for argument[0]: unrecognized command");
                 return false;
         }
     }
