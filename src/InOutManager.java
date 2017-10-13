@@ -1,16 +1,19 @@
 import java.io.File;
 
 public class InOutManager {
-    // attributes
+    // Attributes
     public static DebugLogger logger;
+    public static FragmentationManager fragManager;
+    public static AssemblyManager assemManager;
 
-    public InOutManager () {
+    InOutManager () {
         logger = new DebugLogger();
     }
 
     public static void main (String[] args) {
         if (validateArguments(args)) {
             System.out.println("Operation Successful");
+            handleInput(args);
         }
         else {
             System.out.println(logger.printLogs());
@@ -76,5 +79,19 @@ public class InOutManager {
                 logger.log("invalid input for argument[0]: unrecognized command");
                 return false;
         }
+    }
+
+    public static void handleInput (String[] args) {
+        if (args[0].equals("fragment")) {
+            fragManager = new FragmentationManager(args);
+        }
+        else {
+            assemManager = new AssemblyManager(args);
+        }
+        return;
+    }
+
+    public static void handleOutput (String[] args) {
+        return;
     }
 }
