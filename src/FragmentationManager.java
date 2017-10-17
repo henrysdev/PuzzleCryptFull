@@ -20,24 +20,21 @@ public class FragmentationManager {
         fileBytes = crypto.scrambleBytes(fileBytes, obfuscVal);
 
         // partition file into byte array
-        partitionBytes(fileBytes, n);
-
-        /*
-        Shard[] shards = new Shard[n];
-        for (int i = 0; i < n; i++) {
-            shards[i] = new Shard( );
-        }
-        */
+        Shard[] shards = partitionBytes(fileBytes, n);
 
         // write fragments to disk
-        try {
-            fileOps.writeOutFile(filepath, fileBytes);
-        } catch (IOException e) {
-            e.printStackTrace();
+        int i = 0;
+        for (Shard s : shards) {
+            try {
+                fileOps.writeOutFile(filepath + Integer.toString(i), s.getBytes());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            i++;
         }
     }
 
-    public void partitionBytes (byte[] fileBytes, int n) {
+    public Shard[] partitionBytes (byte[] fileBytes, int n) {
         int remainder = fileBytes.length % n;
         int fragSize = ((fileBytes.length - (remainder)) / n);
 
@@ -48,16 +45,33 @@ public class FragmentationManager {
             remainderFlag = true;
             Random rand = new Random();
             ri = rand.nextInt(n - 0);
+            System.out.println(ri);
         }
 
-        byte[] payload = Arrays.copyOfRange(fileBytes, 0, fragSize + 1);
-        Shard = new Shard(payload, 0);
-        for (int i = 1; i < n; i++) {
-            payload = Arrays.copyOfRange(fileBytes, (i)*fragSize, (i+1)*fragSize + 1);
+        //byte[] payload = Arrays.copyOfRange(fileBytes, 0, fragSize + 1);
+        // handle offset for largest byte
+        int rmdrOffsetBeg, rmdrOffsetEnd = 0;
+        Shard[] shards = new Shard[n];
+        for (int i = 1; i < n+1; i++) {
+            // if its the randomly selected fragment that will take on the remainder...
+            if (ri == i - 1 ) {
+                rmdrOffsetBeg = 0;
+                rmdrOffsetEnd = remainder + 1;
+            }
+            // if last time it was the special frag...
+            else if (ri == i - 2) {
+                rmdrOffsetBeg = remainder;
+                rmdrOffsetEnd = 1;
+            }
+            else {
+                rmdrOffsetBeg = 0;
+                rmdrOffsetEnd = 1;
+            }
+            byte[] payload = Arrays.copyOfRange(fileBytes, (i-1)*fragSize + rmdrOffsetBeg, (i)*fragSize + rmdrOffsetEnd + 1);
             Shard s = new Shard(payload);
+            shards[i-1] = s;
         }
-
-        return;
+        return shards;
     }
 
     public void encryptShards () {

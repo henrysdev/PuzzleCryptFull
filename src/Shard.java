@@ -17,4 +17,8 @@ public class Shard {
         return HMAC;
     }
 
+    public byte[] getBytes () {
+        return  dataPayload;
+    }
+
 }
