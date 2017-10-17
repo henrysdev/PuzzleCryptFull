@@ -41,7 +41,7 @@ public class FragmentationManager {
         // random index
         boolean remainderFlag = false;
         int ri = 0;
-        if (remainder != 0) {
+        if (remainder > 0) {
             remainderFlag = true;
             Random rand = new Random();
             ri = rand.nextInt(n - 0);
@@ -50,26 +50,19 @@ public class FragmentationManager {
 
         //byte[] payload = Arrays.copyOfRange(fileBytes, 0, fragSize + 1);
         // handle offset for largest byte
-        int rmdrOffsetBeg, rmdrOffsetEnd = 0;
+        int offsetBeg = 0;
+        int offsetEnd = fragSize;
         Shard[] shards = new Shard[n];
-        for (int i = 1; i < n+1; i++) {
-            // if its the randomly selected fragment that will take on the remainder...
-            if (ri == i - 1 ) {
-                rmdrOffsetBeg = 0;
-                rmdrOffsetEnd = remainder + 1;
+        for (int i = 0; i < n; i++) {
+            if (i == ri) {
+                offsetEnd += remainder + 1;
             }
-            // if last time it was the special frag...
-            else if (ri == i - 2) {
-                rmdrOffsetBeg = remainder;
-                rmdrOffsetEnd = 1;
-            }
-            else {
-                rmdrOffsetBeg = 0;
-                rmdrOffsetEnd = 1;
-            }
-            byte[] payload = Arrays.copyOfRange(fileBytes, (i-1)*fragSize + rmdrOffsetBeg, (i)*fragSize + rmdrOffsetEnd + 1);
+            // (i-1)*fragSize + offsetBeg, (i)*fragSize + offsetEnd + 1);
+            byte[] payload = Arrays.copyOfRange(fileBytes, offsetBeg, offsetEnd);
             Shard s = new Shard(payload);
-            shards[i-1] = s;
+            shards[i] = s;
+            offsetBeg = offsetEnd;
+            offsetEnd += fragSize;
         }
         return shards;
     }
