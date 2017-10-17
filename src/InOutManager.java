@@ -10,9 +10,8 @@ public class InOutManager {
         logger = new DebugLogger();
     }
 
-    public static void main (String[] args) {
+    public static void main (String[] args) throws Exception {
         if (validateArguments(args)) {
-            System.out.println("Operation Successful");
             handleInput(args);
         }
         else {
@@ -32,7 +31,7 @@ public class InOutManager {
                         int n = Integer.parseInt(args[2]);
                     }
                     catch (NumberFormatException invalidN) {
-                        logger.log("invalid format for argument[3]: " + invalidN.getMessage());
+                        logger.log("invalid format for argument[2]: " + invalidN.getMessage());
                         return false;
                     }
 
@@ -81,12 +80,14 @@ public class InOutManager {
         }
     }
 
-    public static void handleInput (String[] args) {
+    public static void handleInput (String[] args) throws Exception {
         if (args[0].equals("fragment")) {
-            fragManager = new FragmentationManager(args);
+            fragManager = new FragmentationManager();
+            fragManager.fileToFragments(args);
         }
         else {
-            assemManager = new AssemblyManager(args);
+            assemManager = new AssemblyManager();
+            assemManager.fragmentsToFile(args);
         }
         return;
     }
