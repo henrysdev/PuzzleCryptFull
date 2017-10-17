@@ -6,7 +6,7 @@ public class AssemblyManager {
     private String filepath;
     private String filePass;
 
-    AssemblyManager (String[] args) {
+    public void fragmentsToFile (String[] args) {
         filepath = args[1];
         filePass = args[2];
         System.out.println("Assembly Successful");

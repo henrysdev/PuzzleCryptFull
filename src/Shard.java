@@ -2,14 +2,14 @@
 
 public class Shard {
 
-    private String dataPayload;
+    private byte[] dataPayload;
     private String HMAC;
 
-    public Shard (String payload) {
+    public Shard (byte[] payload) {
         dataPayload = payload;
     }
 
-    public String getDataPayload () {
+    public byte[] getDataPayload () {
         return dataPayload;
     }
 

@@ -12,7 +12,6 @@ public class InOutManager {
 
     public static void main (String[] args) {
         if (validateArguments(args)) {
-            System.out.println("Operation Successful");
             handleInput(args);
         }
         else {
@@ -83,10 +82,12 @@ public class InOutManager {
 
     public static void handleInput (String[] args) {
         if (args[0].equals("fragment")) {
-            fragManager = new FragmentationManager(args);
+            fragManager = new FragmentationManager();
+            fragManager.fileToFragments(args);
         }
         else {
-            assemManager = new AssemblyManager(args);
+            assemManager = new AssemblyManager();
+            assemManager.fragmentsToFile(args);
         }
         return;
     }
