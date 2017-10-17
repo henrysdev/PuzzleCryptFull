@@ -10,7 +10,7 @@ public class InOutManager {
         logger = new DebugLogger();
     }
 
-    public static void main (String[] args) {
+    public static void main (String[] args) throws Exception {
         if (validateArguments(args)) {
             handleInput(args);
         }
@@ -80,7 +80,7 @@ public class InOutManager {
         }
     }
 
-    public static void handleInput (String[] args) {
+    public static void handleInput (String[] args) throws Exception {
         if (args[0].equals("fragment")) {
             fragManager = new FragmentationManager();
             fragManager.fileToFragments(args);

@@ -1,24 +1,29 @@
-
+import java.io.ByteArrayOutputStream;
 
 public class Shard {
 
-    private byte[] dataPayload;
-    private String HMAC;
+    private byte[] payload;
+    private byte[] HMAC;
 
-    public Shard (byte[] payload) {
-        dataPayload = payload;
+    public Shard (byte[] encrPayload, byte[] hmac) {
+        payload = encrPayload;
+        HMAC = hmac;
     }
 
-    public byte[] getDataPayload () {
-        return dataPayload;
+    public byte[] getPayload () {
+        return payload;
     }
 
-    public String getHMAC () {
+    public byte[] getHMAC () {
         return HMAC;
     }
 
-    public byte[] getBytes () {
-        return  dataPayload;
+    public byte[] toFragment () throws Exception {
+        ByteArrayOutputStream fragmentStream = new ByteArrayOutputStream();
+        fragmentStream.write( payload );
+        fragmentStream.write( HMAC );
+        byte[] fragment = fragmentStream.toByteArray();
+        return fragment;
     }
 
 }
