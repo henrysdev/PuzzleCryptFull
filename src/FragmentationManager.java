@@ -3,8 +3,6 @@ import java.io.IOException;
 
 public class FragmentationManager {
 
-    private String secretKey;
-
     // master function for class
     public void fileToFragments (String[] args) throws Exception {
         // read in arguments
@@ -20,7 +18,7 @@ public class FragmentationManager {
         PathParser parser = new PathParser();
 
         // create secret key
-        secretKey = new String(crypto.hash(filePass), "UTF8");
+        String secretKey = new String(crypto.hash(filePass), "UTF8");
         secretKey = secretKey.substring(secretKey.length() - 16);
 
         // start processing input file
