@@ -104,7 +104,6 @@ public class AssemblyManager {
         int dataSize = 0;
         for (int i = 0; i < authorizedPayloads.size(); i++) {
             byte[] encrPayload = authorizedPayloads.get(i);
-            System.out.println("payload: " + Arrays.toString(encrPayload));
             byte[] decrPayload = cipher.decrypt(encrPayload);
             scrambledPayloads.add(decrPayload);
             dataSize += decrPayload.length;
@@ -115,7 +114,6 @@ public class AssemblyManager {
         for (int i = 0; i < scrambledPayloads.size(); i++) {
             byte[] currLoad = scrambledPayloads.get(i);
             scramStream.write(currLoad);
-            System.out.println("currLoad: " + Arrays.toString(currLoad));
         }
         byte[] scrambledBytes = scramStream.toByteArray();
 
@@ -127,20 +125,30 @@ public class AssemblyManager {
 
         // ***** EXTRACT FILENAME FROM PAYLOAD *****
         // last 256 bytes of payload (padded)
-        byte[] paddedInfoBytes = new byte[256];
+        byte[] paddedInfoBytes = Arrays.copyOfRange(unscramdBytes, unscramdBytes.length-256, unscramdBytes.length);
+        byte[] origFile = Arrays.copyOfRange(unscramdBytes,0, unscramdBytes.length-256);
 
-        System.out.println(scrambledBytes.length);
-        System.arraycopy(unscramdBytes,unscramdBytes.length-256,paddedInfoBytes,0,256);
+        int i = 255;
+        int infoStartIndex = 0;
+        while (i > 0) {
+            if (paddedInfoBytes[i] == 0) {
+                infoStartIndex = i+1;
+                break;
+            }
+            i--;
+        }
 
+        byte[] fnameBytes = Arrays.copyOfRange(paddedInfoBytes, infoStartIndex, 256);
 
 
         // write reassembled file to disk
         try {
             // generate random 8-character string for file output
-            String name = "myreassembledfile.txt";
+            String name = new String(fnameBytes);
+            System.out.println(name);
             String fullPath = "test0/";
             fullPath = fullPath.concat(name);
-            fileOps.writeOutFile(fullPath, unscramdBytes);
+            fileOps.writeOutFile(fullPath, origFile);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -32,7 +32,7 @@ public class FragmentationManager {
         int obfuscVal = n + filePass.length();
 
         // store fileInfo for eventual reassembly in 256 byte padded array
-        byte[] filename = "myreallycoolfile.txt".getBytes();
+        byte[] filename = parser.extractFilename(filepath).getBytes();
         byte[] padding = new byte[256 - filename.length];
         ByteArrayOutputStream fileInfoStream = new ByteArrayOutputStream();
         fileInfoStream.write( padding );
