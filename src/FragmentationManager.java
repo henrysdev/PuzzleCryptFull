@@ -46,32 +46,12 @@ public class FragmentationManager {
         byte[] compFileData = compFileDataStream.toByteArray();
 
         // scramble bytes of payload
-        // DEBUG DEBUG CHANGE BACK TO SCRAMBLE
+        // todo DEBUG DEBUG CHANGE BACK TO SCRAMBLE
         byte[] scrambledData = compFileData;//crypto.scrambleBytes(compFileData, obfuscVal);
-        // DEBUG DEBUG CHANGE BACK TO SCRAMBLE
+        // todo DEBUG DEBUG CHANGE BACK TO SCRAMBLE
 
         // partition the scrambled file data into payload byte arrays
         byte[][] payloads = partitioner.splitWithRemainder(scrambledData, n);
-
-        // DEBUGGING LOGIC
-        byte[] myBytes = {(byte) 0xAA, (byte) 0x9C, (byte) 0xA3, (byte) 0x67,
-                (byte) 0x67, (byte) 0x7A, (byte) 0xE9, (byte) 0x12, (byte) 0xAA, (byte) 0x9C, (byte) 0xA3, (byte) 0x67,
-                (byte) 0x67, (byte) 0x7A, (byte) 0xE9, (byte) 0x12, (byte) 0xAA, (byte) 0x9C, (byte) 0xA3, (byte) 0x67,
-                (byte) 0x67, (byte) 0x7A, (byte) 0xE9, (byte) 0x12, (byte) 0xAA, (byte) 0x9C, (byte) 0xA3, (byte) 0x67,
-                (byte) 0x67, (byte) 0x7A, (byte) 0xE9, (byte) 0x12};
-        byte[][] tps = partitioner.splitWithRemainder(myBytes, 3);
-        for (int i = 0; i < tps.length; i++) {
-            System.out.println( " original: " + Arrays.toString(tps[i]) );
-
-            AESEncrypter e1 = new AESEncrypter(secretKey, new byte[0]);
-            byte[] eload = e1.encrypt(tps[i]); //crypto.encrypt(tps[i], secretKey);
-            System.out.println( "encrypted: " + Arrays.toString(eload) );
-
-            AESEncrypter d1 = new AESEncrypter(secretKey, e1.getInitVect());
-            byte[] dload = d1.decrypt(eload);//crypto.decrypt(eload, secretKey, IV); //crypto.decrypt(eload, secretKey);
-            System.out.println(" decrypted: " + Arrays.toString(dload) + "\n");
-        }
-        // /DEBUGGING LOGIC
 
         // process each payload into a complete fragment, iterating by sequenceID
         Shard[] shards = new Shard[n];
@@ -79,15 +59,15 @@ public class FragmentationManager {
             System.out.println(seqID);
             // encrypt payloads
             byte[] encrPayload = aesCipher.encrypt(payloads[seqID]);
+            System.out.println(Arrays.toString(encrPayload));
 
             // generate and append HMAC
             byte[] hmac = crypto.hash(secretKey.concat(Integer.toString(seqID)));
 
             // store as shard
-            Shard shard = new Shard(encrPayload, hmac);
+            Shard shard = new Shard(encrPayload, IV, hmac);
             shards[seqID] = shard;
         }
-
 
 
         // write shards to disk

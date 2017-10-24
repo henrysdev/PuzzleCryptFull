@@ -45,60 +45,72 @@ public class AssemblyManager {
             // directories.
         }
 
-        // map potential .frg files {HMAC : Payload}
-        Map<String, byte[]> hmacMap = new HashMap<>();
+        // map potential .frg files {HMAC : IV}
+        Map<String, byte[]> hmacIVMap = new HashMap<>();
+
+        // map potential IVs {HMAC : Payload}
+        Map<String, byte[]> hmacPayloadMap = new HashMap<>();
 
         for (String path : potentialFrags) {
-            System.out.println("Potential fragment: " + path);
             byte[] frgBytes = fileOps.readInFile(path);
-
-            System.out.println("File Bytes: " + Arrays.toString(frgBytes));
 
             byte[] frgHMAC = new byte[32]; //HMAC is statically sized
             System.arraycopy(frgBytes, frgBytes.length-32, frgHMAC, 0, 32);
 
-            byte[] frgPayload = Arrays.copyOfRange(frgBytes, 0, frgBytes.length-32);
-            System.out.println("HMAC: " + Arrays.toString(frgHMAC));
-            System.out.println("Payload: " + Arrays.toString(frgPayload));
+            byte[] frgIV = new byte[16]; //IV is statically sized
+            System.arraycopy(frgBytes, frgBytes.length-48, frgIV,0, 16);
 
-            hmacMap.put(Arrays.toString(frgHMAC), frgPayload);
+            byte[] frgPayload = Arrays.copyOfRange(frgBytes, 0, frgBytes.length-48);
+
+            String hmacKey = Arrays.toString(frgHMAC);
+            hmacIVMap.put(hmacKey, frgIV);
+            hmacPayloadMap.put(hmacKey, frgPayload);
         }
 
-        // AUTHENTICATION
+        // ***** AUTHENTICATION *****
         // loop through and generate hmacs, comparing until no comparison can be found
         int seqID = 0; // first sequenceID to look for
-        String genHMAC = Arrays.toString(crypto.hash( secretKey.concat(Integer.toString(seqID)) ) );
-
+        String genHMAC = Arrays.toString(crypto.hash(secretKey.concat(Integer.toString(seqID))));
         ArrayList<byte[]> authorizedPayloads = new ArrayList<>();
 
-        while (hmacMap.get(genHMAC) != null) {
-            authorizedPayloads.add(hmacMap.get(genHMAC));
+        // fileIV
+        byte[] fileIV = new byte[0];
+
+        // set file IV
+        if (hmacIVMap.get(genHMAC) != null) {
+            fileIV = hmacIVMap.get(genHMAC);
+        }
+
+        AESEncrypter cipher = new AESEncrypter(secretKey, fileIV);
+
+        // while there exists a fragment with the right HMAC and right IV...
+        while (hmacPayloadMap.get(genHMAC) != null) {
+            authorizedPayloads.add(hmacPayloadMap.get(genHMAC));
             // iterate sequenceID and generate corresponding HMAC to look for
             seqID++;
-            genHMAC = Arrays.toString(crypto.hash( secretKey.concat(Integer.toString(seqID)) ) );
-            n++;
+            genHMAC = Arrays.toString(crypto.hash(secretKey.concat(Integer.toString(seqID))));
+            n++; // keep count of number of fragments successfully read in
         }
-
+        // if no fragments found, return failure
         if (n == 0) {
             System.out.println("no authorized fragments!");
+            return;
         }
 
-        for(byte[] authPload : authorizedPayloads) {
-            System.out.println(authPload.toString());
-        }
+        System.out.println("count of authorized fragments: " + authorizedPayloads.size());
 
-        // DECRYPTION
-        byte[] foundIV = new byte[15]; //READ IN IV FROM FIRST 16bytes OF FRAGMENT
+        // ***** DECRYPTION *****
         ArrayList<byte[]> scrambledPayloads = new ArrayList<>();
         int dataSize = 0;
-        for (byte[] encrPayload : authorizedPayloads) {
-            AESEncrypter e1 = new AESEncrypter(secretKey, foundIV);
-            byte[] decrPayload = e1.decrypt(encrPayload);
+        for (int i = 0; i < authorizedPayloads.size(); i++) {
+            byte[] encrPayload = authorizedPayloads.get(i);
+            System.out.println("payload: " + Arrays.toString(encrPayload));
+            byte[] decrPayload = cipher.decrypt(encrPayload);
             scrambledPayloads.add(decrPayload);
             dataSize += decrPayload.length;
         }
 
-        // CONCATENATATION
+        // ***** CONCATENATION *****
         ByteArrayOutputStream scramStream = new ByteArrayOutputStream();
         for (int i = 0; i < scrambledPayloads.size(); i++) {
             byte[] currLoad = scrambledPayloads.get(i);
@@ -107,16 +119,14 @@ public class AssemblyManager {
         }
         byte[] scrambledBytes = scramStream.toByteArray();
 
-        //System.out.println("ConcattedBytes: " + Arrays.toString(scrambledBytes) );
-
-        // UNSCRAMBLE
+        // ***** UNSCRAMBLE *****
         int obfuscVal = filePass.length() + n;
-        // DEBUG DEBUG CHANGE BACK TO UNSCRAMBLE
+        // todo DEBUG DEBUG CHANGE BACK TO UNSCRAMBLE
         byte[] unscramdBytes = scrambledBytes; //crypto.scrambleBytes(scrambledBytes, obfuscVal);
-        // DEBUG DEBUG CHANGE BACK TO UNSCRAMBLE
+        // todo DEBUG DEBUG CHANGE BACK TO UNSCRAMBLE
 
-        // EXTRACT FILENAME
-        // last 256 bytes
+        // ***** EXTRACT FILENAME FROM PAYLOAD *****
+        // last 256 bytes of payload (padded)
         byte[] paddedInfoBytes = new byte[256];
 
         System.out.println(scrambledBytes.length);
@@ -124,7 +134,7 @@ public class AssemblyManager {
 
 
 
-        // write shards to disk
+        // write reassembled file to disk
         try {
             // generate random 8-character string for file output
             String name = "myreassembledfile.txt";

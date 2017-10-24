@@ -35,10 +35,8 @@ public class AESEncrypter {
         if (newIV.length != 16) {
             initV = ecipher.getParameters().getParameterSpec(IvParameterSpec.class).getIV();
         } else {
-            System.out.println("ALREADY HAVE ONE!");
             initV = newIV;
         }
-        System.out.println("IV: " + Arrays.toString(initV));
         dcipher.init(Cipher.DECRYPT_MODE, secret, new IvParameterSpec(initV));
     }
 
