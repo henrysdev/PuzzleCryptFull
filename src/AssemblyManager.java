@@ -1,4 +1,6 @@
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,7 +13,7 @@ public class AssemblyManager {
         // read in arguments
         String dirPath = args[1];
         String filePass = args[2];
-        System.out.println("Assembly Successful");
+        int n = 0; // n is found on read-in
 
         // instantiate dependency classes
         FileOperations fileOps = new FileOperations();
@@ -44,38 +46,45 @@ public class AssemblyManager {
         }
 
         // map potential .frg files {HMAC : Payload}
-        Map<byte[], byte[]> hmacMap = new HashMap<>();
+        Map<String, byte[]> hmacMap = new HashMap<>();
 
         for (String path : potentialFrags) {
+            System.out.println("Potential fragment: " + path);
             byte[] frgBytes = fileOps.readInFile(path);
-            byte[] frgHMAC = new byte[64]; //HMAC is statically sized
-            System.arraycopy(frgBytes, 0, frgHMAC, 0, 64);
-            byte[] frgPayload = Arrays.copyOfRange(frgBytes, 0, frgBytes.length-64);
-            hmacMap.put(frgHMAC, frgPayload);
 
-            // DEBUGGING
-            /*
-            int i = 0;
-            for (byte b : frgHMAC) {
-                System.out.println((char) b);
-                i++;
-            }
-            System.out.println(i);
-            */
-            //map.get(frgHMAC);
+            System.out.println("File Bytes: " + Arrays.toString(frgBytes));
+
+            byte[] frgHMAC = new byte[32]; //HMAC is statically sized
+            System.arraycopy(frgBytes, frgBytes.length-32, frgHMAC, 0, 32);
+
+            byte[] frgPayload = Arrays.copyOfRange(frgBytes, 0, frgBytes.length-32);
+            System.out.println("HMAC: " + Arrays.toString(frgHMAC));
+            System.out.println("Payload: " + Arrays.toString(frgPayload));
+
+            hmacMap.put(Arrays.toString(frgHMAC), frgPayload);
         }
 
         // AUTHENTICATION
         // loop through and generate hmacs, comparing until no comparison can be found
         int seqID = 0; // first sequenceID to look for
-        byte[] genHMAC = crypto.hash( secretKey.concat(Integer.toString(seqID)) );
+        String genHMAC = Arrays.toString(crypto.hash( secretKey.concat(Integer.toString(seqID)) ) );
+
         ArrayList<byte[]> authorizedPayloads = new ArrayList<>();
 
         while (hmacMap.get(genHMAC) != null) {
             authorizedPayloads.add(hmacMap.get(genHMAC));
             // iterate sequenceID and generate corresponding HMAC to look for
             seqID++;
-            genHMAC = crypto.hash( secretKey.concat(Integer.toString(seqID)) );
+            genHMAC = Arrays.toString(crypto.hash( secretKey.concat(Integer.toString(seqID)) ) );
+            n++;
+        }
+
+        if (n == 0) {
+            System.out.println("no authorized fragments!");
+        }
+
+        for(byte[] authPload : authorizedPayloads) {
+            System.out.println(authPload.toString());
         }
 
         // DECRYPTION
@@ -88,16 +97,43 @@ public class AssemblyManager {
         }
 
         // CONCATENATATION
-        byte[] scrambledBytes = new byte[dataSize];
-        int bytePos = 0;
+        ByteArrayOutputStream scramStream = new ByteArrayOutputStream();
         for (int i = 0; i < scrambledPayloads.size(); i++) {
-            System.arraycopy(scrambledPayloads[i],0,scrambledBytes,bytePos);
-            bytePos += scrambledBytes[i].length;
+            byte[] currLoad = scrambledPayloads.get(i);
+            scramStream.write(currLoad);
+            System.out.println("currLoad: " + Arrays.toString(currLoad));
         }
+        byte[] scrambledBytes = scramStream.toByteArray();
+
+        //System.out.println("ConcattedBytes: " + Arrays.toString(scrambledBytes) );
 
         // UNSCRAMBLE
+        int obfuscVal = filePass.length() + n;
+        // DEBUG DEBUG CHANGE BACK TO UNSCRAMBLE
+        byte[] unscramdBytes = scrambledBytes; //crypto.scrambleBytes(scrambledBytes, obfuscVal);
+        // DEBUG DEBUG CHANGE BACK TO UNSCRAMBLE
+
+        // EXTRACT FILENAME
+        // last 256 bytes
+        byte[] paddedInfoBytes = new byte[256];
+
+        System.out.println(scrambledBytes.length);
+        System.arraycopy(unscramdBytes,unscramdBytes.length-256,paddedInfoBytes,0,256);
 
 
+
+        // write shards to disk
+        try {
+            // generate random 8-character string for file output
+            String name = "myreassembledfile.txt";
+            String fullPath = "test0/";
+            fullPath = fullPath.concat(name);
+            fileOps.writeOutFile(fullPath, unscramdBytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Assembly Successful");
 
     }
 

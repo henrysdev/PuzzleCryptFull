@@ -1,5 +1,6 @@
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class FragmentationManager {
 
@@ -40,10 +41,21 @@ public class FragmentationManager {
         byte[] compFileData = compFileDataStream.toByteArray();
 
         // scramble bytes of payload
-        byte[] scrambledData = crypto.scrambleBytes(compFileData, obfuscVal);
+        // DEBUG DEBUG CHANGE BACK TO SCRAMBLE
+        byte[] scrambledData = compFileData;//crypto.scrambleBytes(compFileData, obfuscVal);
+        // DEBUG DEBUG CHANGE BACK TO SCRAMBLE
 
         // partition the scrambled file data into payload byte arrays
         byte[][] payloads = partitioner.splitWithRemainder(scrambledData, n);
+
+        /*
+        byte[] myBytes = {10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
+        byte[][] tps = partitioner.splitWithRemainder(myBytes, 3);
+
+        for (byte[] part : tps) {
+            System.out.println( Arrays.toString(part) );
+        }
+        */
 
         // process each payload into a complete fragment, iterating by sequenceID
         Shard[] shards = new Shard[n];
@@ -60,13 +72,17 @@ public class FragmentationManager {
             shards[seqID] = shard;
         }
 
+
+
         // write shards to disk
         for (Shard s : shards) {
             try {
-                // generate random string for file output
+                // generate random 8-character string for file output
                 String name = new String(crypto.randomBlock(8));
                 name = name.concat(".frg");
-                fileOps.writeOutFile(name, s.toFragment());
+                String fullPath = "test0/";
+                fullPath = fullPath.concat(name);
+                fileOps.writeOutFile(fullPath, s.toFragment());
             } catch (IOException e) {
                 e.printStackTrace();
             }

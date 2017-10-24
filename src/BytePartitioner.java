@@ -23,44 +23,10 @@ public class BytePartitioner {
         for (int i = 0; i < n; i++) {
             if (remainderFlag) {
                 if (i == ri) {
-                    offsetEnd += remainder + 1;
+                    offsetEnd += remainder;
                 }
             }
             byte[] newPayload = Arrays.copyOfRange(fileBytes, offsetBeg, offsetEnd);
-            payloads[i] = newPayload;
-            offsetBeg = offsetEnd;
-            offsetEnd += fragSize;
-        }
-        return payloads;
-    }
-
-    public byte[][] splitWithRemainder (String text, int n) throws Exception {
-        int remainder = text.length() % n;
-        int fragSize = ((text.length() - (remainder)) / n);
-
-        byte[] textBytes = text.getBytes();
-
-        // random index
-        boolean remainderFlag = false;
-        int ri = 0;
-        if (remainder > 0) {
-            remainderFlag = true;
-            Random rand = new Random();
-            ri = rand.nextInt(n - 0);
-            //System.out.println(ri);
-        }
-
-        // handle offset for largest byte
-        byte[][] payloads = new byte[n][];
-        int offsetBeg = 0;
-        int offsetEnd = fragSize;
-        for (int i = 0; i < n; i++) {
-            if (remainderFlag) {
-                if (i == ri) {
-                    offsetEnd += remainder + 1;
-                }
-            }
-            byte[] newPayload = Arrays.copyOfRange(textBytes, offsetBeg, offsetEnd);
             payloads[i] = newPayload;
             offsetBeg = offsetEnd;
             offsetEnd += fragSize;
