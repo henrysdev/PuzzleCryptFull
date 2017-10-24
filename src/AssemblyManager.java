@@ -119,15 +119,14 @@ public class AssemblyManager {
 
         // ***** UNSCRAMBLE *****
         int obfuscVal = filePass.length() + n;
-        // todo DEBUG DEBUG CHANGE BACK TO UNSCRAMBLE
-        byte[] unscramdBytes = scrambledBytes; //crypto.scrambleBytes(scrambledBytes, obfuscVal);
-        // todo DEBUG DEBUG CHANGE BACK TO UNSCRAMBLE
+        byte[] unscramdBytes = crypto.scrambleBytes(scrambledBytes, obfuscVal);
 
         // ***** EXTRACT FILENAME FROM PAYLOAD *****
         // last 256 bytes of payload (padded)
         byte[] paddedInfoBytes = Arrays.copyOfRange(unscramdBytes, unscramdBytes.length-256, unscramdBytes.length);
         byte[] origFile = Arrays.copyOfRange(unscramdBytes,0, unscramdBytes.length-256);
 
+        // finding filename: scan until beginning of padding is located
         int i = 255;
         int infoStartIndex = 0;
         while (i > 0) {
@@ -137,7 +136,6 @@ public class AssemblyManager {
             }
             i--;
         }
-
         byte[] fnameBytes = Arrays.copyOfRange(paddedInfoBytes, infoStartIndex, 256);
 
 

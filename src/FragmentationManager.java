@@ -29,7 +29,6 @@ public class FragmentationManager {
 
         // start processing input file
         byte[] fileBytes = fileOps.readInFile(filepath);
-        int obfuscVal = n + filePass.length();
 
         // store fileInfo for eventual reassembly in 256 byte padded array
         byte[] filename = parser.extractFilename(filepath).getBytes();
@@ -46,9 +45,8 @@ public class FragmentationManager {
         byte[] compFileData = compFileDataStream.toByteArray();
 
         // scramble bytes of payload
-        // todo DEBUG DEBUG CHANGE BACK TO SCRAMBLE
-        byte[] scrambledData = compFileData;//crypto.scrambleBytes(compFileData, obfuscVal);
-        // todo DEBUG DEBUG CHANGE BACK TO SCRAMBLE
+        int obfuscVal = n + filePass.length();
+        byte[] scrambledData = crypto.scrambleBytes(compFileData, obfuscVal);
 
         // partition the scrambled file data into payload byte arrays
         byte[][] payloads = partitioner.splitWithRemainder(scrambledData, n);
