@@ -88,10 +88,12 @@ public class AssemblyManager {
         }
 
         // DECRYPTION
+        byte[] foundIV = new byte[15]; //READ IN IV FROM FIRST 16bytes OF FRAGMENT
         ArrayList<byte[]> scrambledPayloads = new ArrayList<>();
         int dataSize = 0;
         for (byte[] encrPayload : authorizedPayloads) {
-            byte[] decrPayload = crypto.decrypt(encrPayload, secretKey);
+            AESEncrypter e1 = new AESEncrypter(secretKey, foundIV);
+            byte[] decrPayload = e1.decrypt(encrPayload);
             scrambledPayloads.add(decrPayload);
             dataSize += decrPayload.length;
         }

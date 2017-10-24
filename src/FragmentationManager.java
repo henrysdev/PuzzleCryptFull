@@ -1,5 +1,6 @@
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.Arrays;
 
 public class FragmentationManager {
@@ -21,6 +22,10 @@ public class FragmentationManager {
         // create secret key
         String secretKey = new String(crypto.hash(filePass), "UTF8");
         secretKey = secretKey.substring(secretKey.length() - 16);
+
+        // generate file-specific AES cipher
+        AESEncrypter aesCipher = new AESEncrypter(secretKey, new byte[0]);
+        byte[] IV = aesCipher.getInitVect();
 
         // start processing input file
         byte[] fileBytes = fileOps.readInFile(filepath);
@@ -48,21 +53,32 @@ public class FragmentationManager {
         // partition the scrambled file data into payload byte arrays
         byte[][] payloads = partitioner.splitWithRemainder(scrambledData, n);
 
-        /*
-        byte[] myBytes = {10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
+        // DEBUGGING LOGIC
+        byte[] myBytes = {(byte) 0xAA, (byte) 0x9C, (byte) 0xA3, (byte) 0x67,
+                (byte) 0x67, (byte) 0x7A, (byte) 0xE9, (byte) 0x12, (byte) 0xAA, (byte) 0x9C, (byte) 0xA3, (byte) 0x67,
+                (byte) 0x67, (byte) 0x7A, (byte) 0xE9, (byte) 0x12, (byte) 0xAA, (byte) 0x9C, (byte) 0xA3, (byte) 0x67,
+                (byte) 0x67, (byte) 0x7A, (byte) 0xE9, (byte) 0x12, (byte) 0xAA, (byte) 0x9C, (byte) 0xA3, (byte) 0x67,
+                (byte) 0x67, (byte) 0x7A, (byte) 0xE9, (byte) 0x12};
         byte[][] tps = partitioner.splitWithRemainder(myBytes, 3);
+        for (int i = 0; i < tps.length; i++) {
+            System.out.println( " original: " + Arrays.toString(tps[i]) );
 
-        for (byte[] part : tps) {
-            System.out.println( Arrays.toString(part) );
+            AESEncrypter e1 = new AESEncrypter(secretKey, new byte[0]);
+            byte[] eload = e1.encrypt(tps[i]); //crypto.encrypt(tps[i], secretKey);
+            System.out.println( "encrypted: " + Arrays.toString(eload) );
+
+            AESEncrypter d1 = new AESEncrypter(secretKey, e1.getInitVect());
+            byte[] dload = d1.decrypt(eload);//crypto.decrypt(eload, secretKey, IV); //crypto.decrypt(eload, secretKey);
+            System.out.println(" decrypted: " + Arrays.toString(dload) + "\n");
         }
-        */
+        // /DEBUGGING LOGIC
 
         // process each payload into a complete fragment, iterating by sequenceID
         Shard[] shards = new Shard[n];
         for (int seqID = 0; seqID < n; seqID++) {
             System.out.println(seqID);
             // encrypt payloads
-            byte[] encrPayload = crypto.encrypt(payloads[seqID], secretKey);
+            byte[] encrPayload = aesCipher.encrypt(payloads[seqID]);
 
             // generate and append HMAC
             byte[] hmac = crypto.hash(secretKey.concat(Integer.toString(seqID)));

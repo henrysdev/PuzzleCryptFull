@@ -29,18 +29,21 @@ public class Cryptographics {
         return scramBytes;
     }
 
-    public byte[] encrypt (byte[] clearBytes, String password) throws Exception {
-        AESEncrypter encrypter = new AESEncrypter(password);
+    /*
+
+    public byte[] encrypt (byte[] clearBytes, String password, byte[] iv) throws Exception {
+        AESEncrypter encrypter = new AESEncrypter(password, iv);
         byte[] encrypted = encrypter.encrypt(clearBytes);
         return encrypted;
     }
 
-    public byte[] decrypt (byte[] cipherBytes, String password) throws Exception {
-
-        AESEncrypter encrypter = new AESEncrypter(password);
+    public byte[] decrypt (byte[] cipherBytes, String password, byte[] iv) throws Exception {
+        AESEncrypter encrypter = new AESEncrypter(password, iv);
         byte[] decrypted = encrypter.decrypt(cipherBytes);
         return decrypted;
     }
+
+    */
 
     public byte[] hash (String message) throws Exception {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");

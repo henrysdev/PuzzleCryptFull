@@ -1,4 +1,5 @@
 import java.security.spec.KeySpec;
+import java.util.Arrays;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -19,8 +20,9 @@ public class AESEncrypter {
     private static final int KEY_LENGTH = 128;
     private Cipher ecipher;
     private Cipher dcipher;
+    private byte[] initV;
 
-    AESEncrypter(String passPhrase) throws Exception {
+    AESEncrypter(String passPhrase, byte[] newIV) throws Exception {
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
         KeySpec spec = new PBEKeySpec(passPhrase.toCharArray(), SALT, ITERATION_COUNT, KEY_LENGTH);
         SecretKey tmp = factory.generateSecret(spec);
@@ -30,8 +32,14 @@ public class AESEncrypter {
         ecipher.init(Cipher.ENCRYPT_MODE, secret);
 
         dcipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        byte[] iv = ecipher.getParameters().getParameterSpec(IvParameterSpec.class).getIV();
-        dcipher.init(Cipher.DECRYPT_MODE, secret, new IvParameterSpec(iv));
+        if (newIV.length != 16) {
+            initV = ecipher.getParameters().getParameterSpec(IvParameterSpec.class).getIV();
+        } else {
+            System.out.println("ALREADY HAVE ONE!");
+            initV = newIV;
+        }
+        System.out.println("IV: " + Arrays.toString(initV));
+        dcipher.init(Cipher.DECRYPT_MODE, secret, new IvParameterSpec(initV));
     }
 
     public String encrypt(String encrypt) throws Exception {
@@ -52,5 +60,9 @@ public class AESEncrypter {
 
     public byte[] decrypt(byte[] encrypt) throws Exception {
         return dcipher.doFinal(encrypt);
+    }
+
+    public byte[] getInitVect() throws Exception {
+        return initV;
     }
 }
