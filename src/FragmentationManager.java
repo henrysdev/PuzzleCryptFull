@@ -1,9 +1,9 @@
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.Arrays;
 
 public class FragmentationManager {
-
-    private String secretKey;
 
     // master function for class
     public void fileToFragments (String[] args) throws Exception {
@@ -20,15 +20,18 @@ public class FragmentationManager {
         PathParser parser = new PathParser();
 
         // create secret key
-        secretKey = new String(crypto.hash(filePass), "UTF8");
+        String secretKey = new String(crypto.hash(filePass), "UTF8");
         secretKey = secretKey.substring(secretKey.length() - 16);
+
+        // generate file-specific AES cipher
+        AESEncrypter aesCipher = new AESEncrypter(secretKey, new byte[0]);
+        byte[] IV = aesCipher.getInitVect();
 
         // start processing input file
         byte[] fileBytes = fileOps.readInFile(filepath);
-        int obfuscVal = n + filePass.length();
 
         // store fileInfo for eventual reassembly in 256 byte padded array
-        byte[] filename = "myreallycoolfile.txt".getBytes();
+        byte[] filename = parser.extractFilename(filepath).getBytes();
         byte[] padding = new byte[256 - filename.length];
         ByteArrayOutputStream fileInfoStream = new ByteArrayOutputStream();
         fileInfoStream.write( padding );
@@ -42,7 +45,7 @@ public class FragmentationManager {
         byte[] compFileData = compFileDataStream.toByteArray();
 
         // scramble bytes of payload
-        byte[] scrambledData = crypto.scrambleBytes(compFileData, obfuscVal);
+        byte[] scrambledData = crypto.scrambleBytes(compFileData);
 
         // partition the scrambled file data into payload byte arrays
         byte[][] payloads = partitioner.splitWithRemainder(scrambledData, n);
@@ -52,23 +55,25 @@ public class FragmentationManager {
         for (int seqID = 0; seqID < n; seqID++) {
             System.out.println(seqID);
             // encrypt payloads
-            byte[] encrPayload = crypto.encrypt(payloads[seqID], secretKey);
+            byte[] encrPayload = aesCipher.encrypt(payloads[seqID]);
 
             // generate and append HMAC
             byte[] hmac = crypto.hash(secretKey.concat(Integer.toString(seqID)));
 
             // store as shard
-            Shard shard = new Shard(encrPayload, hmac);
+            Shard shard = new Shard(encrPayload, IV, hmac);
             shards[seqID] = shard;
         }
 
         // write shards to disk
         for (Shard s : shards) {
             try {
-                // generate random string for file output
+                // generate random 8-character string for file output
                 String name = new String(crypto.randomBlock(8));
                 name = name.concat(".frg");
-                fileOps.writeOutFile(name, s.toFragment());
+                String fullPath = "test0/";
+                fullPath = fullPath.concat(name);
+                fileOps.writeOutFile(fullPath, s.toFragment());
             } catch (IOException e) {
                 e.printStackTrace();
             }

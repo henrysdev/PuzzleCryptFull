@@ -1,46 +1,66 @@
+import java.lang.reflect.Array;
 import java.security.MessageDigest;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Random;
+import java.nio.ByteBuffer;
 
 public class Cryptographics {
 
-    // TODO reduce complexity. (currently naive approach with ~ O(2n) time)
-    public byte[] scrambleBytes (byte[] fileBytes, int obfuscVal) throws Exception {
+    public byte[] scrambleBytes (byte[] fileBytes) throws Exception {
+
+
+        //byte[] fb = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+        //fileBytes = fb;
+
+        //   fragment ./test0/mydoc.txt 3 henryhenry
+
+        //   assemble ./test0/ henryhenry
 
         int arrLen = fileBytes.length;
-        byte[] scramBytes = new byte[arrLen];
+        int step = 1; // additional step for index of chunk swaps
+        int chunkSize = 3;
 
-        // reverse order of bytes
-        for (int i=0; i < arrLen; i++) {
-            scramBytes[i] = fileBytes[arrLen - i - 1];
-        }
+        for (int i=0; i < arrLen/2; i++) {
+            fileBytes[i] = rotateRight(fileBytes[i], 4);
+            fileBytes[arrLen-1 - i] = rotateRight(fileBytes[arrLen-1 - i], 4);
 
-        // flip reversed bytes if the remainder of (i % obfuscVal) is 1
-        for (int i=0; i < arrLen; i++) {
-            if (i % obfuscVal == 1) {
-                int iSwap = arrLen - i - 1;
-                byte chosen = scramBytes[i];
-                byte temp = scramBytes[iSwap];
-                scramBytes[i] = temp;
-                scramBytes[iSwap] = chosen;
+            if (i == 0)
+                continue;
+            if (i % (chunkSize + step) == 0) {
+                ByteBuffer buf = ByteBuffer.wrap(fileBytes);
+
+                byte[] chunk = Arrays.copyOfRange(fileBytes, i-chunkSize,i);
+                byte[] tempChunk = Arrays.copyOfRange(fileBytes, arrLen-i, arrLen-i+chunkSize);
+
+                buf.position(i-chunkSize);
+                buf.put(tempChunk);
+
+                buf.position(arrLen-i);
+                buf.put(chunk);
+
+                fileBytes = buf.array();
             }
         }
 
-        return scramBytes;
+        System.out.println("final: " + Arrays.toString(fileBytes));
+
+        return fileBytes;
     }
 
-    public byte[] encrypt (byte[] clearBytes, String password) throws Exception {
-        AESEncrypter encrypter = new AESEncrypter(password);
-        byte[] encrypted = encrypter.encrypt(clearBytes);
-        return encrypted;
+    // bit shift logic borrowed from
+    // https://stackoverflow.com/questions/19181411/circular-rotate-issue-with-rotate-left
+    public static byte rotateRight(byte bits, int shift)
+    {
+        return (byte)(((bits & 0xff)  >>> shift) | ((bits & 0xff) << (8 - shift)));
     }
 
-    public byte[] decrypt (byte[] cipherBytes, String password) throws Exception {
-
-        AESEncrypter encrypter = new AESEncrypter(password);
-        byte[] decrypted = encrypter.decrypt(cipherBytes);
-        return decrypted;
+    public static byte rotateLeft(byte bits, int shift)
+    {
+        return (byte)(((bits & 0xff) << shift) | ((bits & 0xff) >>> (8 - shift)));
     }
+
 
     public byte[] hash (String message) throws Exception {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -48,6 +68,7 @@ public class Cryptographics {
         return hashRes;
     }
 
+    // generate a randomized block of characters of given length
     public byte[] randomBlock (int blockLen) {
 
         final String alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
