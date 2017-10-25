@@ -45,26 +45,33 @@ public class AssemblyManager {
             // directories.
         }
 
-        // map potential .frg files {HMAC : IV}
-        Map<String, byte[]> hmacIVMap = new HashMap<>();
+        byte[] fileIV = new byte[0];
 
-        // map potential IVs {HMAC : Payload}
+        // map HMACs to Payloads {HMAC : Payload}
         Map<String, byte[]> hmacPayloadMap = new HashMap<>();
 
         for (String path : potentialFrags) {
             byte[] frgBytes = fileOps.readInFile(path);
 
-            byte[] frgHMAC = new byte[32]; //HMAC is statically sized
+            byte[] frgHMAC = new byte[32]; //HMAC is statically sized to 32 bytes
             System.arraycopy(frgBytes, frgBytes.length-32, frgHMAC, 0, 32);
 
-            byte[] frgIV = new byte[16]; //IV is statically sized
+            byte[] frgIV = new byte[16]; //IV is statically sized to 16 bytes
             System.arraycopy(frgBytes, frgBytes.length-48, frgIV,0, 16);
+            // sets the IV to the first fragments IV found
+            if (fileIV.length == 0) {
+                fileIV = frgIV;
+            }
 
-            byte[] frgPayload = Arrays.copyOfRange(frgBytes, 0, frgBytes.length-48);
-
-            String hmacKey = Arrays.toString(frgHMAC);
-            hmacIVMap.put(hmacKey, frgIV);
-            hmacPayloadMap.put(hmacKey, frgPayload);
+            if (Arrays.equals(fileIV, frgIV)) {
+                byte[] frgPayload = Arrays.copyOfRange(frgBytes, 0, frgBytes.length - 48);
+                String hmacKey = Arrays.toString(frgHMAC); // cast to string to use as key for HashMap
+                hmacPayloadMap.put(hmacKey, frgPayload);
+            }
+            else
+            {
+                System.out.println("Fragment TOSSED for wrong IV");
+            }
         }
 
         // ***** AUTHENTICATION *****
@@ -73,18 +80,11 @@ public class AssemblyManager {
         String genHMAC = Arrays.toString(crypto.hash(secretKey.concat(Integer.toString(seqID))));
         ArrayList<byte[]> authorizedPayloads = new ArrayList<>();
 
-        // fileIV
-        byte[] fileIV = new byte[0];
-
-        // set file IV
-        if (hmacIVMap.get(genHMAC) != null) {
-            fileIV = hmacIVMap.get(genHMAC);
-        }
-
         AESEncrypter cipher = new AESEncrypter(secretKey, fileIV);
 
         // while there exists a fragment with the right HMAC and right IV...
         while (hmacPayloadMap.get(genHMAC) != null) {
+            // if the IV is not correct, remove that entry and try again
             authorizedPayloads.add(hmacPayloadMap.get(genHMAC));
             // iterate sequenceID and generate corresponding HMAC to look for
             seqID++;
@@ -138,7 +138,6 @@ public class AssemblyManager {
         }
         byte[] fnameBytes = Arrays.copyOfRange(paddedInfoBytes, infoStartIndex, 256);
 
-
         // write reassembled file to disk
         try {
             // generate random 8-character string for file output
@@ -146,7 +145,34 @@ public class AssemblyManager {
             System.out.println(name);
             String fullPath = "test0/";
             fullPath = fullPath.concat(name);
+            // TODO *DEBUG LOGIC* write origFile, not scrambledBytes
             fileOps.writeOutFile(fullPath, origFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // write reassembled file to disk
+        try {
+            // generate random 8-character string for file output
+            String name = new String(fnameBytes);
+            System.out.println(name);
+            String fullPath = "test0/SCRAM";
+            fullPath = fullPath.concat(name);
+            // TODO *DEBUG LOGIC* write origFile, not scrambledBytes
+            fileOps.writeOutFile(fullPath, scrambledBytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // write reassembled file to disk
+        try {
+            // generate random 8-character string for file output
+            String name = new String(fnameBytes);
+            System.out.println(name);
+            String fullPath = "test0/UNSCRAM";
+            fullPath = fullPath.concat(name);
+            // TODO *DEBUG LOGIC* write origFile, not scrambledBytes
+            fileOps.writeOutFile(fullPath, unscramdBytes);
         } catch (IOException e) {
             e.printStackTrace();
         }

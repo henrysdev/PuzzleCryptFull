@@ -57,7 +57,6 @@ public class FragmentationManager {
             System.out.println(seqID);
             // encrypt payloads
             byte[] encrPayload = aesCipher.encrypt(payloads[seqID]);
-            System.out.println(Arrays.toString(encrPayload));
 
             // generate and append HMAC
             byte[] hmac = crypto.hash(secretKey.concat(Integer.toString(seqID)));
@@ -66,7 +65,6 @@ public class FragmentationManager {
             Shard shard = new Shard(encrPayload, IV, hmac);
             shards[seqID] = shard;
         }
-
 
         // write shards to disk
         for (Shard s : shards) {
