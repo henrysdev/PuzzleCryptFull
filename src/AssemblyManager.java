@@ -118,8 +118,8 @@ public class AssemblyManager {
         byte[] scrambledBytes = scramStream.toByteArray();
 
         // ***** UNSCRAMBLE *****
-        int obfuscVal = filePass.length() + n;
-        byte[] unscramdBytes = crypto.scrambleBytes(scrambledBytes, obfuscVal);
+        byte[] unscramdBytes = crypto.scrambleBytes(scrambledBytes);
+
 
         // ***** EXTRACT FILENAME FROM PAYLOAD *****
         // last 256 bytes of payload (padded)
@@ -143,36 +143,9 @@ public class AssemblyManager {
             // generate random 8-character string for file output
             String name = new String(fnameBytes);
             System.out.println(name);
-            String fullPath = "test0/";
+            String fullPath = "test0/NEWNEW";
             fullPath = fullPath.concat(name);
-            // TODO *DEBUG LOGIC* write origFile, not scrambledBytes
             fileOps.writeOutFile(fullPath, origFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // write reassembled file to disk
-        try {
-            // generate random 8-character string for file output
-            String name = new String(fnameBytes);
-            System.out.println(name);
-            String fullPath = "test0/SCRAM";
-            fullPath = fullPath.concat(name);
-            // TODO *DEBUG LOGIC* write origFile, not scrambledBytes
-            fileOps.writeOutFile(fullPath, scrambledBytes);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // write reassembled file to disk
-        try {
-            // generate random 8-character string for file output
-            String name = new String(fnameBytes);
-            System.out.println(name);
-            String fullPath = "test0/UNSCRAM";
-            fullPath = fullPath.concat(name);
-            // TODO *DEBUG LOGIC* write origFile, not scrambledBytes
-            fileOps.writeOutFile(fullPath, unscramdBytes);
         } catch (IOException e) {
             e.printStackTrace();
         }

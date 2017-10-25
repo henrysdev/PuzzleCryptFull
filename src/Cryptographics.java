@@ -1,5 +1,3 @@
-import com.sun.tools.javac.util.ArrayUtils;
-
 import java.lang.reflect.Array;
 import java.security.MessageDigest;
 import java.nio.charset.StandardCharsets;
@@ -10,61 +8,31 @@ import java.nio.ByteBuffer;
 
 public class Cryptographics {
 
-    // TODO reduce complexity and efficiency
-     /*
-        int arrLen = fileBytes.length;
-        byte[] scramBytes = new byte[arrLen];
+    public byte[] scrambleBytes (byte[] fileBytes) throws Exception {
 
-        // reverse order of bytes
-        for (int i=0; i < arrLen; i++) {
-            scramBytes[i] = fileBytes[arrLen - i - 1];
-        }
 
-        // flip reversed bytes if the remainder of (i % obfuscVal) is 1
-        for (int i=0; i < arrLen; i++) {
-            if (i % obfuscVal == 1) {
-                int iSwap = arrLen - i - 1;
-                byte chosen = scramBytes[i];
-                byte temp = scramBytes[iSwap];
-                scramBytes[i] = temp;
-                scramBytes[iSwap] = chosen;
-            }
-        }
-
-        return scramBytes;
-        */
-
-    public byte[] scrambleBytes (byte[] fileBytes, int obfuscVal) throws Exception {
-
-        /* DEBUGGING
         //byte[] fb = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-        byte[] fb = {0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1};
-        fileBytes = fb;
-        */
+        //fileBytes = fb;
 
-        System.out.println("orig: " + Arrays.toString(fileBytes));
+        //   fragment ./test0/mydoc.txt 3 henryhenry
 
-        int step = 2; // additional step for index of chunk swaps
-        int chunkSize = 3; // number of bytes in a chunk
+        //   assemble ./test0/ henryhenry
+
         int arrLen = fileBytes.length;
+        int step = 1; // additional step for index of chunk swaps
+        int chunkSize = 3;
 
         for (int i=0; i < arrLen/2; i++) {
+            fileBytes[i] = rotateRight(fileBytes[i], 4);
+            fileBytes[arrLen-1 - i] = rotateRight(fileBytes[arrLen-1 - i], 4);
+
             if (i == 0)
                 continue;
             if (i % (chunkSize + step) == 0) {
                 ByteBuffer buf = ByteBuffer.wrap(fileBytes);
 
-                /* DEBUGGING
-                System.out.println("\nmod: " + i);
-
-                System.out.println("BEFORE for i=" + i + ": " + Arrays.toString(fileBytes));
-                */
-
                 byte[] chunk = Arrays.copyOfRange(fileBytes, i-chunkSize,i);
-                //System.out.println("chunk: " + Arrays.toString(chunk) + " (for i=" + i + ")");
-
                 byte[] tempChunk = Arrays.copyOfRange(fileBytes, arrLen-i, arrLen-i+chunkSize);
-                //System.out.println("tempChunk: " + Arrays.toString(tempChunk) + " (for i=" + i + ")");
 
                 buf.position(i-chunkSize);
                 buf.put(tempChunk);
@@ -72,14 +40,11 @@ public class Cryptographics {
                 buf.position(arrLen-i);
                 buf.put(chunk);
 
-
                 fileBytes = buf.array();
-                //System.out.println("AFTER for i=" + i + ": " + Arrays.toString(fileBytes));
             }
         }
 
         System.out.println("final: " + Arrays.toString(fileBytes));
-        //System.out.println(fileBytes.length);
 
         return fileBytes;
     }

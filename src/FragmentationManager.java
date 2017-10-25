@@ -45,8 +45,7 @@ public class FragmentationManager {
         byte[] compFileData = compFileDataStream.toByteArray();
 
         // scramble bytes of payload
-        int obfuscVal = n + filePass.length();
-        byte[] scrambledData = crypto.scrambleBytes(compFileData, obfuscVal);
+        byte[] scrambledData = crypto.scrambleBytes(compFileData);
 
         // partition the scrambled file data into payload byte arrays
         byte[][] payloads = partitioner.splitWithRemainder(scrambledData, n);
