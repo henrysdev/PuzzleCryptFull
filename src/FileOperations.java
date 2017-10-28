@@ -8,7 +8,7 @@ import java.nio.file.Path;
 public class FileOperations {
 
     // read file from path, return as byte array
-    public static byte[] readInFile (String filepath) {
+    public static byte[] readInFile(String filepath) {
 
         byte[] data;
         Path path = Paths.get(filepath);
@@ -21,7 +21,7 @@ public class FileOperations {
         return data;
     }
 
-    public static void writeOutFile (String filepath, byte[] outputData) throws IOException {
+    public static void writeOutFile(String filepath, byte[] outputData) throws IOException {
         FileOutputStream stream = null;
         try {
             stream = new FileOutputStream(filepath);
@@ -34,8 +34,5 @@ public class FileOperations {
         } finally {
             stream.close();
         }
-
-
-        return;
     }
 }
