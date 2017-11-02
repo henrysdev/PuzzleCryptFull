@@ -1,21 +1,13 @@
 import java.io.File;
 
 public class InOutManager {
-    // Attributes
-    public static DebugLogger logger;
-    public static FragmentationManager fragManager;
-    public static AssemblyManager assemManager;
-
-    InOutManager () {
-        logger = new DebugLogger();
-    }
 
     public static void main (String[] args) throws Exception {
         if (validateArguments(args)) {
             handleInput(args);
         }
         else {
-            System.out.println(logger.printLogs());
+            System.out.println(DebugLogger.printLogs());
         }
     }
 
@@ -31,7 +23,7 @@ public class InOutManager {
                         int n = Integer.parseInt(args[2]);
                     }
                     catch (NumberFormatException invalidN) {
-                        logger.log("invalid format for argument[2]: " + invalidN.getMessage());
+                        DebugLogger.log("invalid format for argument[2]: " + invalidN.getMessage());
                         return false;
                     }
 
@@ -41,13 +33,13 @@ public class InOutManager {
                         return true;
                     }
                     else {
-                        logger.log("invalid input for argument[3]: insufficient password complexity");
+                        DebugLogger.log("invalid input for argument[3]: insufficient password complexity");
                         return false;
                     }
 
                 }
                 else {
-                    logger.log("invalid input for argument[2]: file not found.");
+                    DebugLogger.log("invalid input for argument[2]: file not found.");
                     return false;
                 }
 
@@ -63,31 +55,28 @@ public class InOutManager {
                         return true;
                     }
                     else {
-                        logger.log("invalid input for argument[2]: insufficient password complexity");
+                        DebugLogger.log("invalid input for argument[2]: insufficient password complexity");
                         return false;
                     }
                 }
                 else {
-                    logger.log("invalid input for argument[1]: directory not found");
+                    DebugLogger.log("invalid input for argument[1]: directory not found");
                     return false;
                 }
 
 
             default:
                 // return false if first argument does not match any cases
-                logger.log("invalid input for argument[0]: unrecognized command");
+                DebugLogger.log("invalid input for argument[0]: unrecognized command");
                 return false;
         }
     }
 
     public static void handleInput (String[] args) throws Exception {
         if (args[0].equals("fragment")) {
-            fragManager = new FragmentationManager();
-            fragManager.fileToFragments(args);
-        }
-        else {
-            assemManager = new AssemblyManager();
-            assemManager.fragmentsToFile(args);
+            FragmentationManager.fileToFragments(args);
+        } else {
+            AssemblyManager.fragmentsToFile(args);
         }
         return;
     }

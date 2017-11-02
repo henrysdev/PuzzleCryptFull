@@ -2,7 +2,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 public class BytePartitioner {
-    public byte[][] splitWithRemainder (byte[] fileBytes, int n) throws Exception {
+    public static byte[][] splitWithRemainder (byte[] fileBytes, int n) throws Exception {
         int remainder = fileBytes.length % n;
         int fragSize = ((fileBytes.length - (remainder)) / n);
 

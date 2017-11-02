@@ -1,31 +1,31 @@
+import lombok.val;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.Arrays;
 
 public class FragmentationManager {
 
     // master function for class
-    public void fileToFragments (String[] args) throws Exception {
+    public static void fileToFragments (String[] args) throws Exception {
         // read in arguments
-        String filepath = args[1];
-        String filePass = args[3];
-        int n = Integer.parseInt(args[2]);
+        val filepath = args[1];
+        val filePass = args[3];
+        val n = Integer.parseInt(args[2]);
 
         // instantiate dependency classes
-        FileOperations fileOps = new FileOperations();
-        Cryptographics crypto = new Cryptographics();
-        BytePartitioner partitioner = new BytePartitioner();
-        BytePadder padder = new BytePadder();
-        PathParser parser = new PathParser();
+        val fileOps = new FileOperations();
+        val crypto = new Cryptographics();
+        val partitioner = new BytePartitioner();
+        val padder = new BytePadder();
+        val parser = new PathParser();
 
         // create secret key
         String secretKey = new String(crypto.hash(filePass), "UTF8");
         secretKey = secretKey.substring(secretKey.length() - 16);
 
         // generate file-specific AES cipher
-        AESEncrypter aesCipher = new AESEncrypter(secretKey, new byte[0]);
-        byte[] IV = aesCipher.getInitVect();
+        val aesCipher = new AESEncrypter(secretKey, new byte[0]);
+        byte[] IV = aesCipher.getInitV();
 
         // start processing input file
         byte[] fileBytes = fileOps.readInFile(filepath);

@@ -1,14 +1,12 @@
-import java.lang.reflect.Array;
-import java.security.MessageDigest;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Random;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.Arrays;
+import java.util.Random;
 
 public class Cryptographics {
 
-    public byte[] scrambleBytes (byte[] fileBytes) throws Exception {
+    public static byte[] scrambleBytes (byte[] fileBytes) throws Exception {
 
 
         //byte[] fb = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
@@ -62,14 +60,14 @@ public class Cryptographics {
     }
 
 
-    public byte[] hash (String message) throws Exception {
+    public static byte[] hash (String message) throws Exception {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] hashRes = digest.digest(message.getBytes(StandardCharsets.UTF_8));
         return hashRes;
     }
 
     // generate a randomized block of characters of given length
-    public byte[] randomBlock (int blockLen) {
+    public static byte[] randomBlock (int blockLen) {
 
         final String alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         final int N = alphabet.length();

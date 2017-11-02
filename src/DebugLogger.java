@@ -1,7 +1,7 @@
 import java.util.Stack;
 
 public class DebugLogger {
-    private static Stack<String> logs = new Stack<String>();
+    private static final Stack<String> logs = new Stack<String>();
 
     public static void log(String entry) {
         logs.push(entry);

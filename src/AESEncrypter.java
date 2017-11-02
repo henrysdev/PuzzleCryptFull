@@ -1,13 +1,14 @@
-import java.security.spec.KeySpec;
-import java.util.Arrays;
+import lombok.Getter;
+import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
+
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
+import java.security.spec.KeySpec;
 
 // implementation borrowed from https://pastebin.com/YiwbCAW8
 public class AESEncrypter {
@@ -20,6 +21,7 @@ public class AESEncrypter {
     private static final int KEY_LENGTH = 128;
     private Cipher ecipher;
     private Cipher dcipher;
+    @Getter
     private byte[] initV;
 
     AESEncrypter(String passPhrase, byte[] newIV) throws Exception {
@@ -40,27 +42,23 @@ public class AESEncrypter {
         dcipher.init(Cipher.DECRYPT_MODE, secret, new IvParameterSpec(initV));
     }
 
-    public String encrypt(String encrypt) throws Exception {
+    public String encrypt(final String encrypt) throws Exception {
         byte[] bytes = encrypt.getBytes("UTF8");
         byte[] encrypted = encrypt(bytes);
         return new BASE64Encoder().encode(encrypted);
     }
 
-    public byte[] encrypt(byte[] plain) throws Exception {
+    public byte[] encrypt(final byte[] plain) throws Exception {
         return ecipher.doFinal(plain);
     }
 
-    public String decrypt(String encrypt) throws Exception {
+    public String decrypt(final String encrypt) throws Exception {
         byte[] bytes = new BASE64Decoder().decodeBuffer(encrypt);
         byte[] decrypted = decrypt(bytes);
         return new String(decrypted, "UTF8");
     }
 
-    public byte[] decrypt(byte[] encrypt) throws Exception {
+    public byte[] decrypt(final byte[] encrypt) throws Exception {
         return dcipher.doFinal(encrypt);
-    }
-
-    public byte[] getInitVect() throws Exception {
-        return initV;
     }
 }
