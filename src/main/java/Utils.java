@@ -1,6 +1,5 @@
 import lombok.Lombok;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.util.concurrent.Callable;
@@ -14,12 +13,12 @@ public class Utils {
 
 //TODO: Make sure Collector works with unboxed bytes[].
     @SneakyThrows
-    public static Collector<Byte[], ByteArrayOutputStream, ByteArrayOutputStream> byteCollector() {
+    public static Collector<byte[], ByteArrayOutputStream, byte[]> byteCollector() {
         return Collector.of(
             wrapSupplier(() -> new ByteArrayOutputStream()),
-            wrapBiConsumer((outputStream, inputObject) -> outputStream.write(ArrayUtils.toPrimitive(inputObject))),
+            wrapBiConsumer((outputStream, inputObject) -> outputStream.write(inputObject)),
             (outputStream, otherStream) -> {outputStream.write(otherStream.toByteArray()); return outputStream;},
-            outputStream -> outputStream
+            outputStream -> outputStream.toByteArray()
         );
     }
 
