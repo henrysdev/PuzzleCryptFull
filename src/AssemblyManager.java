@@ -173,7 +173,7 @@ public class AssemblyManager {
 
     private static Consumer<String> consumePath(final FragmentContainer fileIV, Map<String, byte[]> hmacPayloadMap){
         return path -> {
-            val fragment = FileOperations.readInFile(path);
+            val fragment = FileOperations.readInFile("./test0/".concat(path));
             val frgHMAC = getHMAC(fragment);
             val frgIV = getIV(fragment);
 

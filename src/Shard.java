@@ -6,8 +6,8 @@ import java.io.ByteArrayOutputStream;
 public class Shard {
 
     private final byte[] payload;
-    private final byte[] HMAC;
     private final byte[] IV;
+    private final byte[] HMAC;
 
     public byte[] toFragment() throws Exception {
         ByteArrayOutputStream fragmentStream = new ByteArrayOutputStream();
