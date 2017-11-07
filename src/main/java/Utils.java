@@ -2,6 +2,7 @@ import lombok.Lombok;
 import lombok.SneakyThrows;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -17,7 +18,7 @@ public class Utils {
         return Collector.of(
             wrapSupplier(() -> new ByteArrayOutputStream()),
             wrapBiConsumer((outputStream, inputObject) -> outputStream.write(inputObject)),
-            (outputStream, otherStream) -> {outputStream.write(otherStream.toByteArray()); return outputStream;},
+            (outputStream, otherStream) -> { try{ outputStream.write(otherStream.toByteArray()); } catch (IOException e) {return outputStream; } return outputStream;},
             outputStream -> outputStream.toByteArray()
         );
     }
