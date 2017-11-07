@@ -12,15 +12,8 @@ public class FragmentationManager {
         val filePass = args[3];
         val n = Integer.parseInt(args[2]);
 
-        // instantiate dependency classes
-        val fileOps = new FileOperations();
-        val crypto = new Cryptographics();
-        val partitioner = new BytePartitioner();
-        val padder = new BytePadder();
-        val parser = new PathParser();
-
         // create secret key
-        String secretKey = new String(crypto.hash(filePass), "UTF8");
+        String secretKey = new String(Cryptographics.hash(filePass), "UTF8");
         secretKey = secretKey.substring(secretKey.length() - 16);
 
         // generate file-specific AES cipher
@@ -28,10 +21,10 @@ public class FragmentationManager {
         byte[] IV = aesCipher.getInitV();
 
         // start processing input file
-        byte[] fileBytes = fileOps.readInFile(filepath);
+        byte[] fileBytes = FileOperations.readInFile(filepath);
 
         // store fileInfo for eventual reassembly in 256 byte padded array
-        byte[] filename = parser.extractFilename(filepath).getBytes();
+        byte[] filename = PathParser.extractFilename(filepath).getBytes();
         byte[] padding = new byte[256 - filename.length];
         ByteArrayOutputStream fileInfoStream = new ByteArrayOutputStream();
         fileInfoStream.write( padding );
@@ -45,10 +38,10 @@ public class FragmentationManager {
         byte[] compFileData = compFileDataStream.toByteArray();
 
         // scramble bytes of payload
-        byte[] scrambledData = crypto.scrambleBytes(compFileData);
+        byte[] scrambledData = Cryptographics.scrambleBytes(compFileData);
 
         // partition the scrambled file data into payload byte arrays
-        byte[][] payloads = partitioner.splitWithRemainder(scrambledData, n);
+        byte[][] payloads = BytePartitioner.splitWithRemainder(scrambledData, n);
 
         // process each payload into a complete fragment, iterating by sequenceID
         Shard[] shards = new Shard[n];
@@ -58,7 +51,7 @@ public class FragmentationManager {
             byte[] encrPayload = aesCipher.encrypt(payloads[seqID]);
 
             // generate and append HMAC
-            byte[] hmac = crypto.hash(secretKey.concat(Integer.toString(seqID)));
+            byte[] hmac = Cryptographics.hash(secretKey.concat(Integer.toString(seqID)));
 
             // store as shard
             Shard shard = new Shard(encrPayload, IV, hmac);
@@ -69,11 +62,11 @@ public class FragmentationManager {
         for (Shard s : shards) {
             try {
                 // generate random 8-character string for file output
-                String name = new String(crypto.randomBlock(8));
+                String name = new String(Cryptographics.randomBlock(8));
                 name = name.concat(".frg");
                 String fullPath = "test0/";
                 fullPath = fullPath.concat(name);
-                fileOps.writeOutFile(fullPath, s.toFragment());
+                FileOperations.writeOutFile(fullPath, s.toFragment());
             } catch (IOException e) {
                 e.printStackTrace();
             }

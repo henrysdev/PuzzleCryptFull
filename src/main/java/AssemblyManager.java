@@ -20,12 +20,6 @@ public class AssemblyManager {
         String filePass = args[2];
         int n = 0; // n is found on read-in
 
-        // These are all static. No need for instances.
-        FileOperations fileOps = new FileOperations();
-        BytePartitioner partitioner = new BytePartitioner();
-        BytePadder padder = new BytePadder();
-        PathParser parser = new PathParser();
-
         // create secret key
         val fileHash = new String(Cryptographics.hash(filePass), "UTF8");
         val secretKey = fileHash.substring(fileHash.length() - 16); //16 is a magic number.
@@ -111,7 +105,7 @@ public class AssemblyManager {
             System.out.println(name);
             String fullPath = "test0/NEWNEW";
             fullPath = fullPath.concat(name);
-            fileOps.writeOutFile(fullPath, origFile);
+            FileOperations.writeOutFile(fullPath, origFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
