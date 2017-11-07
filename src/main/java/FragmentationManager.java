@@ -1,3 +1,4 @@
+import lombok.SneakyThrows;
 import lombok.val;
 
 import java.io.ByteArrayOutputStream;
@@ -6,7 +7,12 @@ import java.io.IOException;
 public class FragmentationManager {
 
     // master function for class
-    public static void fileToFragments (String[] args) throws Exception {
+    @SneakyThrows
+    public static void fileToFragments (String[] args) {
+        // constants
+        val FILE_EXTENSTION = ".frg";
+        val DEBUG_PATH = "test0/";
+
         // read in arguments
         val filepath = args[1];
         val filePass = args[3];
@@ -16,55 +22,31 @@ public class FragmentationManager {
         String secretKey = new String(Cryptographics.hash(filePass), "UTF8");
         secretKey = secretKey.substring(secretKey.length() - 16);
 
-        // generate file-specific AES cipher
-        val aesCipher = new AESEncrypter(secretKey, new byte[0]);
-        byte[] IV = aesCipher.getInitV();
-
         // start processing input file
         byte[] fileBytes = FileOperations.readInFile(filepath);
+        PuzzleFile wholeFileObj = new PuzzleFile(fileBytes, secretKey);
 
         // store fileInfo for eventual reassembly in 256 byte padded array
         byte[] filename = PathParser.extractFilename(filepath).getBytes();
-        byte[] padding = new byte[256 - filename.length];
-        ByteArrayOutputStream fileInfoStream = new ByteArrayOutputStream();
-        fileInfoStream.write( padding );
-        fileInfoStream.write( filename );
-        byte[] fileInfo = fileInfoStream.toByteArray();
+        byte[] fileInfoChunk = buildFilenameChunk(filename);
 
-        // append file info to file data to form complete file data
-        ByteArrayOutputStream compFileDataStream = new ByteArrayOutputStream();
-        compFileDataStream.write(fileBytes);
-        compFileDataStream.write(fileInfo);
-        byte[] compFileData = compFileDataStream.toByteArray();
+        // add fileInfo chunk to PuzzleFile obj
+        wholeFileObj.addChunk(fileInfoChunk);
 
-        // scramble bytes of payload
-        byte[] scrambledData = Cryptographics.scrambleBytes(compFileData);
+        // scramble file data
+        //wholeFileObj.scramble();
 
-        // partition the scrambled file data into payload byte arrays
-        byte[][] payloads = BytePartitioner.splitWithRemainder(scrambledData, n);
-
-        // process each payload into a complete fragment, iterating by sequenceID
-        Shard[] shards = new Shard[n];
-        for (int seqID = 0; seqID < n; seqID++) {
-            System.out.println(seqID);
-            // encrypt payloads
-            byte[] encrPayload = aesCipher.encrypt(payloads[seqID]);
-
-            // generate and append HMAC
-            byte[] hmac = Cryptographics.hash(secretKey.concat(Integer.toString(seqID)));
-
-            // store as shard
-            Shard shard = new Shard(encrPayload, IV, hmac);
-            shards[seqID] = shard;
-        }
+        // shatter file into shards
+        Shard[] shards = wholeFileObj.toShards(n);
 
         // write shards to disk
         for (Shard s : shards) {
             try {
                 // generate random 8-character string for file output
                 String name = new String(Cryptographics.randomBlock(8));
-                name = name.concat(".frg");
-                String fullPath = "test0/";
+                name = name.concat(FILE_EXTENSTION);
+                // TODO: stop hardcoding debugging folder. Make path dynamic
+                String fullPath = DEBUG_PATH;
                 fullPath = fullPath.concat(name);
                 FileOperations.writeOutFile(fullPath, s.toFragment());
             } catch (IOException e) {
@@ -73,8 +55,13 @@ public class FragmentationManager {
         }
     }
 
-    //TODO flesh out way of compressing data before encrypting
-    public void compressPayload () throws Exception {
-        return;
+    @SneakyThrows
+    public static byte[] buildFilenameChunk (byte[] filename) {
+        byte[] padding = new byte[256 - filename.length];
+        ByteArrayOutputStream fileInfoStream = new ByteArrayOutputStream();
+        fileInfoStream.write( padding );
+        fileInfoStream.write( filename );
+        byte[] fileInfo = fileInfoStream.toByteArray();
+        return fileInfo;
     }
 }
