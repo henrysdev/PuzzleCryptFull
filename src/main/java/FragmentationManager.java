@@ -3,6 +3,7 @@ import lombok.val;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.File;
 
 public class FragmentationManager {
 
@@ -10,6 +11,7 @@ public class FragmentationManager {
     @SneakyThrows
     public static void fileToFragments (String[] args) {
         // constants
+        val DEBUGGING = false;
         val FILE_EXTENSTION = ".frg";
         val DEBUG_PATH = "test0/";
 
@@ -30,11 +32,12 @@ public class FragmentationManager {
         byte[] filename = PathParser.extractFilename(filepath).getBytes();
         byte[] fileInfoChunk = buildFilenameChunk(filename);
 
+        // compress file data
+        //System.out.println("orig filesize = " + wholeFileObj.getSize());
+        //wholeFileObj.compress();
+
         // add fileInfo chunk to PuzzleFile obj
         wholeFileObj.addChunk(fileInfoChunk);
-
-        // compress file data
-        wholeFileObj.compress();
 
         // scramble file data
         wholeFileObj.scramble();
@@ -44,7 +47,6 @@ public class FragmentationManager {
 
         // write shards to disk
         for (Shard s : shards) {
-            System.out.println(s);
             try {
                 // generate random 8-character string for file output
                 String name = new String(Cryptographics.randomBlock(8));
@@ -56,6 +58,15 @@ public class FragmentationManager {
                 e.printStackTrace();
             }
         }
+
+        // delete original file
+        File file = new File(filepath);
+        if (!DEBUGGING) {
+            if (!file.delete()) {
+                System.out.println("Failed to delete the file");
+            }
+        }
+        System.out.println("Fragmentation Successful");
     }
 
     @SneakyThrows

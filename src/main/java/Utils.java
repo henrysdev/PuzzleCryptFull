@@ -12,7 +12,6 @@ import java.util.stream.Collector;
 
 public class Utils {
 
-//TODO: Make sure Collector works with unboxed bytes[].
     @SneakyThrows
     public static Collector<byte[], ByteArrayOutputStream, byte[]> byteCollector() {
         return Collector.of(

@@ -12,8 +12,8 @@ import java.io.InputStreamReader;
 
 public class PuzzleFile {
 
-    byte[] fileBytes;
-    String secretKey;
+    private byte[] fileBytes;
+    private String secretKey;
 
     public PuzzleFile (byte[] fileBytes, String secretKey) {
         this.fileBytes = fileBytes;
@@ -22,6 +22,10 @@ public class PuzzleFile {
 
     public PuzzleFile (byte[] fileBytes) {
         this.fileBytes = fileBytes;
+    }
+
+    public byte[] toByteArray () {
+        return fileBytes;
     }
 
     @SneakyThrows
@@ -35,7 +39,6 @@ public class PuzzleFile {
         return chunk;
     }
 
-    @SneakyThrows
     public int getSize () {
         return fileBytes.length;
     }
@@ -98,15 +101,14 @@ public class PuzzleFile {
         // process each payload into a complete fragment, iterating by sequenceID
         Shard[] shards = new Shard[n];
         for (int seqID = 0; seqID < n; seqID++) {
-            // encrypt payloads
-            System.out.println(Arrays.toString(payloads[seqID]));
-
+            // create Payload
             Payload payload = new Payload(payloads[seqID]);
             payload.encrypt(aesCipher);
 
+            // create HMAC
             HMAC hmac = new HMAC(secretKey,seqID);
 
-            // store as shard
+            // store as Shard = Payload + IV + HMAC
             Shard shard = new Shard(payload, iv, hmac);
             shards[seqID] = shard;
         }
