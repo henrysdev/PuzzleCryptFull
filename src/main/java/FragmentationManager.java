@@ -34,18 +34,18 @@ public class FragmentationManager {
         wholeFileObj.addChunk(fileInfoChunk);
 
         // scramble file data
-        //wholeFileObj.scramble();
+        wholeFileObj.scramble();
 
         // shatter file into shards
         Shard[] shards = wholeFileObj.toShards(n);
 
         // write shards to disk
         for (Shard s : shards) {
+            System.out.println(s);
             try {
                 // generate random 8-character string for file output
                 String name = new String(Cryptographics.randomBlock(8));
                 name = name.concat(FILE_EXTENSTION);
-                // TODO: stop hardcoding debugging folder. Make path dynamic
                 String fullPath = DEBUG_PATH;
                 fullPath = fullPath.concat(name);
                 FileOperations.writeOutFile(fullPath, s.toFragment());

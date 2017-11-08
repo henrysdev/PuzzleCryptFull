@@ -11,9 +11,29 @@ public class PuzzleFile {
     byte[] fileBytes;
     String secretKey;
 
-    public PuzzleFile (byte[] fb, String secretKey) {
-        this.fileBytes = fb;
+    public PuzzleFile (byte[] fileBytes, String secretKey) {
+        this.fileBytes = fileBytes;
         this.secretKey = secretKey;
+    }
+
+    public PuzzleFile (byte[] fileBytes) {
+        this.fileBytes = fileBytes;
+    }
+
+    @SneakyThrows
+    public byte[] getChunk (int startPos, int endPos) {
+        byte[] chunk = new byte[ endPos - startPos + 1 ];
+        try {
+            chunk = Arrays.copyOfRange(fileBytes, startPos, endPos);
+        } catch (IndexOutOfBoundsException ioobe) {
+            System.out.println("invalid indice range for getChunk");
+        }
+        return chunk;
+    }
+
+    @SneakyThrows
+    public int getSize () {
+        return fileBytes.length;
     }
 
     @SneakyThrows
@@ -50,24 +70,24 @@ public class PuzzleFile {
 
     @SneakyThrows
     public Shard[] toShards (int n) {
-        fileBytes = Cryptographics.scrambleBytes(fileBytes);
         byte[][] payloads = BytePartitioner.splitWithRemainder(fileBytes, n);
 
         val aesCipher = new AESEncrypter(secretKey, new byte[0]);
-        byte[] IV = aesCipher.getInitV();
+        IV iv = new IV(aesCipher.getInitV());
 
         // process each payload into a complete fragment, iterating by sequenceID
         Shard[] shards = new Shard[n];
         for (int seqID = 0; seqID < n; seqID++) {
-            System.out.println(seqID);
             // encrypt payloads
-            byte[] encrPayload = aesCipher.encrypt(payloads[seqID]);
+            System.out.println(Arrays.toString(payloads[seqID]));
 
-            // generate and append HMAC
-            byte[] hmac = Cryptographics.hash(secretKey.concat(Integer.toString(seqID)));
+            Payload payload = new Payload(payloads[seqID]);
+            payload.encrypt(aesCipher);
+
+            HMAC hmac = new HMAC(secretKey,seqID);
 
             // store as shard
-            Shard shard = new Shard(encrPayload, IV, hmac);
+            Shard shard = new Shard(payload, iv, hmac);
             shards[seqID] = shard;
         }
 
