@@ -102,6 +102,9 @@ public class AssemblyManager {
         // unscramble file
         composedFile.scramble();
 
+        // decompress file
+        composedFile.decompress();
+
         // extract filename from padded 256 byte chunk at end of payload
         int fileSize = composedFile.getSize();
         byte[] paddedInfoBytes = composedFile.getChunk(fileSize-256, fileSize);

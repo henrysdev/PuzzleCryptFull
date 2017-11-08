@@ -33,6 +33,9 @@ public class FragmentationManager {
         // add fileInfo chunk to PuzzleFile obj
         wholeFileObj.addChunk(fileInfoChunk);
 
+        // compress file data
+        wholeFileObj.compress();
+
         // scramble file data
         wholeFileObj.scramble();
 

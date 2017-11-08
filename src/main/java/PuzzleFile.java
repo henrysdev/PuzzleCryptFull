@@ -4,7 +4,11 @@ import lombok.val;
 import java.util.Arrays;
 import java.util.zip.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
 
 public class PuzzleFile {
 
@@ -53,19 +57,35 @@ public class PuzzleFile {
     @SneakyThrows
     public void compress () {
         ByteArrayOutputStream bStream = new ByteArrayOutputStream(fileBytes.length);
+        try {
+            GZIPOutputStream gzipStream = new GZIPOutputStream(bStream);
             try {
-                GZIPOutputStream gzipStream = new GZIPOutputStream(bStream);
-                try {
-                    gzipStream.write(fileBytes);
-                }
-                finally {
-                    gzipStream.close();
-                }
+                gzipStream.write(fileBytes);
             }
             finally {
-                bStream.close();
+                gzipStream.close();
             }
+        }
+        finally {
+            bStream.close();
+        }
         fileBytes = bStream.toByteArray();
+    }
+
+    @SneakyThrows
+    public void decompress () {
+        ByteArrayInputStream bStream = new ByteArrayInputStream(fileBytes);
+        GZIPInputStream gzipStream = new GZIPInputStream(bStream);
+        BufferedReader br = new BufferedReader(new InputStreamReader(gzipStream, "UTF-8"));
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while((line = br.readLine()) != null) {
+            sb.append(line);
+        }
+        br.close();
+        gzipStream.close();
+        bStream.close();
+        fileBytes = sb.toString().getBytes();
     }
 
     @SneakyThrows
