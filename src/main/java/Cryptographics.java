@@ -42,8 +42,6 @@ public class Cryptographics {
             }
         }
 
-        System.out.println("final: " + Arrays.toString(fileBytes));
-
         return fileBytes;
     }
 

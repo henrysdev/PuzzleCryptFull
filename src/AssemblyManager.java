@@ -1,86 +1,52 @@
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.val;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Consumer;
 
 public class AssemblyManager {
 
-    public void fragmentsToFile (String[] args) throws Exception {
+    public static void fragmentsToFile (String[] args) throws Exception {
         // read in arguments
         String dirPath = args[1];
         String filePass = args[2];
         int n = 0; // n is found on read-in
 
-        // instantiate dependency classes
+        // These are all static. No need for instances.
         FileOperations fileOps = new FileOperations();
-        Cryptographics crypto = new Cryptographics();
         BytePartitioner partitioner = new BytePartitioner();
         BytePadder padder = new BytePadder();
         PathParser parser = new PathParser();
 
         // create secret key
-        String secretKey = new String(crypto.hash(filePass), "UTF8");
-        secretKey = secretKey.substring(secretKey.length() - 16);
-
-        ArrayList<String> potentialFrags = new ArrayList<>();
-        // weed out by file extension
-        File dir = new File(dirPath);
-        File[] listing = dir.listFiles();
-        if (dir.listFiles() != null) {
-            for (File child : listing) {
-                if(child.getName().endsWith(".frg")) {
-                    // add file to potential fragments
-                    potentialFrags.add(child.getPath());
-                }
-            }
-        } else {
-            System.out.println("NOT A DIRECTORY");
-            // Handle the case where dir is not really a directory.
-            // Checking dir.isDirectory() above would not be sufficient
-            // to avoid race conditions with another process that deletes
-            // directories.
-        }
-
-        byte[] fileIV = new byte[0];
+        val fileHash = new String(Cryptographics.hash(filePass), "UTF8");
+        val secretKey = fileHash.substring(fileHash.length() - 16); //16 is a magic number.
+        val fileIv = new FragmentContainer();
 
         // map HMACs to Payloads {HMAC : Payload}
         Map<String, byte[]> hmacPayloadMap = new HashMap<>();
+        val dir = new File(dirPath);
 
-        for (String path : potentialFrags) {
-            byte[] frgBytes = fileOps.readInFile(path);
-
-            byte[] frgHMAC = new byte[32]; //HMAC is statically sized to 32 bytes
-            System.arraycopy(frgBytes, frgBytes.length-32, frgHMAC, 0, 32);
-
-            byte[] frgIV = new byte[16]; //IV is statically sized to 16 bytes
-            System.arraycopy(frgBytes, frgBytes.length-48, frgIV,0, 16);
-            // sets the IV to the first fragments IV found
-            if (fileIV.length == 0) {
-                fileIV = frgIV;
-            }
-
-            if (Arrays.equals(fileIV, frgIV)) {
-                byte[] frgPayload = Arrays.copyOfRange(frgBytes, 0, frgBytes.length - 48);
-                String hmacKey = Arrays.toString(frgHMAC); // cast to string to use as key for HashMap
-                hmacPayloadMap.put(hmacKey, frgPayload);
-            }
-            else
-            {
-                System.out.println("Fragment TOSSED for wrong IV");
-            }
-        }
+        Arrays.stream(dir.listFiles())
+            .filter(file -> file.getName().endsWith(".frg"))
+            .map(obj -> obj.getName())
+            .forEach(consumePath(fileIv, hmacPayloadMap));
 
         // ***** AUTHENTICATION *****
         // loop through and generate hmacs, comparing until no comparison can be found
         int seqID = 0; // first sequenceID to look for
-        String genHMAC = Arrays.toString(crypto.hash(secretKey.concat(Integer.toString(seqID))));
+        String genHMAC = Arrays.toString(Cryptographics.hash(secretKey.concat(Integer.toString(seqID))));
         ArrayList<byte[]> authorizedPayloads = new ArrayList<>();
 
-        AESEncrypter cipher = new AESEncrypter(secretKey, fileIV);
+        AESEncrypter cipher = new AESEncrypter(secretKey, fileIv.getValue());
 
         // while there exists a fragment with the right HMAC and right IV...
         while (hmacPayloadMap.get(genHMAC) != null) {
@@ -88,7 +54,7 @@ public class AssemblyManager {
             authorizedPayloads.add(hmacPayloadMap.get(genHMAC));
             // iterate sequenceID and generate corresponding HMAC to look for
             seqID++;
-            genHMAC = Arrays.toString(crypto.hash(secretKey.concat(Integer.toString(seqID))));
+            genHMAC = Arrays.toString(Cryptographics.hash(secretKey.concat(Integer.toString(seqID))));
             n++; // keep count of number of fragments successfully read in
         }
         // if no fragments found, return failure
@@ -118,7 +84,7 @@ public class AssemblyManager {
         byte[] scrambledBytes = scramStream.toByteArray();
 
         // ***** UNSCRAMBLE *****
-        byte[] unscramdBytes = crypto.scrambleBytes(scrambledBytes);
+        byte[] unscramdBytes = Cryptographics.scrambleBytes(scrambledBytes);
 
 
         // ***** EXTRACT FILENAME FROM PAYLOAD *****
@@ -173,4 +139,62 @@ public class AssemblyManager {
     public void exportFile () {
         return;
     }
+
+    private static FragmentContainer getHMAC(byte[] fragment){
+        byte[] frgHMAC = new byte[32]; //HMAC is statically sized to 32 bytes
+        System.arraycopy(fragment, fragment.length-32, frgHMAC, 0, 32);
+        return new FragmentContainer(frgHMAC);
+    }
+
+    private static FragmentContainer getIV(byte[] fragment){
+        byte[] frgIV = new byte[16]; //IV is statically sized to 16 bytes
+        System.arraycopy(fragment, fragment.length-48, frgIV,0, 16);
+        return new FragmentContainer(frgIV);
+    }
+
+    private static FragmentContainer getPayload(byte[] fragment){
+        byte[] frgPayload = Arrays.copyOfRange(fragment, 0, fragment.length - 48);
+        return new FragmentContainer(frgPayload);
+    }
+
+    @AllArgsConstructor
+    private static class FragmentContainer{
+        @Getter
+        @Setter
+        private byte[] value;
+        public FragmentContainer(){
+            value = new byte[0];
+        }
+        @Override
+        public String toString(){
+            return Arrays.toString(value);
+        }
+    }
+
+    private static Consumer<String> consumePath(final FragmentContainer fileIV, Map<String, byte[]> hmacPayloadMap){
+        return path -> {
+            val fragment = FileOperations.readInFile("./test0/".concat(path));
+            val frgHMAC = getHMAC(fragment);
+            val frgIV = getIV(fragment);
+
+            // sets the IV to the first fragments IV found
+            if (fileIV.getValue().length == 0) {
+                fileIV.setValue(frgIV.getValue());
+            }
+
+            if (Arrays.equals(fileIV.getValue(), frgIV.getValue())) {
+                val payload = getPayload(fragment);
+                hmacPayloadMap.put(frgHMAC.toString(), payload.getValue());
+            }
+            else
+            {
+                System.out.println("Fragment TOSSED for wrong IV");
+            }
+        };
+    }
+
+
+
+
+
 }
