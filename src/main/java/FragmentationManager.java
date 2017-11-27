@@ -9,21 +9,26 @@ public class FragmentationManager {
 
     @SneakyThrows
     public static void fileToFragments (String[] args) {
-        // constants
+        /** Constants and debug flags
+         */
         val DEBUGGING = false;
         val FILE_EXTENSTION = ".frg";
         val DEBUG_PATH = "test0/";
 
-        // read in arguments
+        /** Read in passed (and already sanitized) arguments
+         */
         val filepath = args[1];
         val filePass = args[3];
         val n = Integer.parseInt(args[2]);
 
-        // create secret key
+        /** Generate secret key using file hash to be used as input in
+         * creating the secret key.
+         */
         String secretKey = new String(Cryptographics.hash(filePass), "UTF8");
         secretKey = secretKey.substring(secretKey.length() - 16);
 
-        // start processing input file
+        /** Put file data into PuzzleFile object for further processing
+         */
         byte[] fileBytes = FileOperations.readInFile(filepath);
         PuzzleFile wholeFileObj = new PuzzleFile(fileBytes, secretKey);
 
