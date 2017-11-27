@@ -18,10 +18,9 @@ public class AssemblyManager {
         // constants
         val DEBUGGING = false;
         val FILE_EXTENSION = ".frg";
+        val DEBUG_PATH = "test0/NEW";
+
         String PATH = "test0/";
-        if (DEBUGGING) {
-            PATH = "test0/NEW";
-        }
 
         // read in arguments
         String dirPath = args[1];
@@ -30,6 +29,8 @@ public class AssemblyManager {
         // create secret key
         val fileHash = new String(Cryptographics.hash(filePass), "UTF8");
         val secretKey = fileHash.substring(fileHash.length() - 16); //16 is a magic number.
+
+
         /** Tyler's Logic
         val fileIv = new FragmentContainer();
         // map HMACs to Payloads {HMAC : Payload}
@@ -46,9 +47,11 @@ public class AssemblyManager {
         }
         IV constIV = new IV(new byte[0]);
         ArrayList<Shard> shards = new ArrayList<>();
-        for (File f : frags) {
+        //for (File f : frags) {
+        for (int i = 0; i < frags.size(); i++) {
+            File frag = frags.get(i);
             //TODO try/catch blocks for reading in file
-            PuzzleFile fileFrag = new PuzzleFile(FileOperations.readInFile(f.getPath()));
+            PuzzleFile fileFrag = new PuzzleFile(FileOperations.readInFile(frag.getPath()));
             int fSize = fileFrag.getSize();
             IV iv = new IV(fileFrag.getChunk(fSize-48,fSize-32));
 
@@ -57,6 +60,8 @@ public class AssemblyManager {
             }
             else if (!Arrays.equals(constIV.getValue(), iv.getValue())) {
                 System.out.println("fragment TOSSED for wrong IV");
+                frags.remove(i);
+                i--;
                 continue;
             }
             Payload payload = new Payload(fileFrag.getChunk(0, fSize-48));
@@ -138,6 +143,9 @@ public class AssemblyManager {
             // generate random 8-character string for file output
             String name = new String(fnameBytes);
             System.out.println(name);
+            if (DEBUGGING) {
+                PATH = DEBUG_PATH;
+            }
             String fullPath = PATH;
             fullPath = fullPath.concat(name);
             FileOperations.writeOutFile(fullPath, originalBytes);

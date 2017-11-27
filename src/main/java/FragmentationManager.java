@@ -7,7 +7,6 @@ import java.io.File;
 
 public class FragmentationManager {
 
-    // master function for class
     @SneakyThrows
     public static void fileToFragments (String[] args) {
         // constants
