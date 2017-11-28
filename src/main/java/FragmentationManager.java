@@ -99,6 +99,15 @@ public class FragmentationManager {
         return fileInfo;
     }
 
+    /** Given an array of Payload objects and an AES key, for each
+     * Payload object, generate the correct IV and HMAC, and then create
+     * a new Shard object given these three values (Payload, IV, HMAC).
+     * Return final array of Shard objects once all have been created.
+     *
+     * @param payloads
+     * @param secretKey
+     * @return shards
+     */
     @SneakyThrows
     public static Shard[] formShards (Payload[] payloads, String secretKey) {
         // create IV that will be constant for all shards
