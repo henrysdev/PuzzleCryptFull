@@ -101,11 +101,11 @@ public class AssemblyManager {
             byte[] currLoad = scrambledPayloads.get(i).getValue();
             scramStream.write(currLoad);
         }
-        PuzzleFile composedFile = new PuzzleFile(scramStream.toByteArray());
+        PuzzleFile composedFile = new PuzzleFile(scramStream.toByteArray(),secretKey);
 
         /* Unscramble the data of the reproduced original file
          */
-        composedFile.scramble();
+        composedFile.unscramble();
 
         /* Extract filename (fileInfo) chunk from the reproduced PuzzleFile
          * object. Accomplish this by iterating through the chunk starting
@@ -127,7 +127,7 @@ public class AssemblyManager {
         /* Set PuzzleFile equal to the remaining portion of the PuzzleFile
          * (no extra chunks).
          */
-        composedFile = new PuzzleFile(composedFile.getChunk(0,fileSize-256));
+        composedFile = new PuzzleFile(composedFile.getChunk(0,fileSize-256),secretKey);
 
         /* Decompress the file data returning the original file data in its entirety.
          */

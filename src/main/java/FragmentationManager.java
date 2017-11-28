@@ -44,6 +44,7 @@ public class FragmentationManager {
 
         /* Compress the file data to minimize storage footprint
          */
+        // TODO fix compression
         //wholeFileObj.compress();
 
         /* Append filename chunk to PuzzleFile

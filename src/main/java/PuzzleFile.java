@@ -34,7 +34,7 @@ public class PuzzleFile {
      * @return fileBytes
      */
     public byte[] toByteArray () {
-        return fileBytes;
+        return this.fileBytes;
     }
 
     /** Given two bounding indices (inclusive), copy the chunk
@@ -79,7 +79,19 @@ public class PuzzleFile {
      */
     @SneakyThrows
     public void scramble () {
-        fileBytes = CryptoUtils.scrambleBytes(fileBytes);
+        long algoKey = CryptoUtils.generateLong(secretKey);
+        FisherYatesShuffler shuffler = new FisherYatesShuffler(algoKey);
+        this.fileBytes = shuffler.scramble(fileBytes);
+    }
+
+    /** Scramble the data using the reversible scramble algorithm
+     *
+     */
+    @SneakyThrows
+    public void unscramble () {
+        long algoKey = CryptoUtils.generateLong(secretKey);
+        FisherYatesShuffler shuffler = new FisherYatesShuffler(algoKey);
+        this.fileBytes = shuffler.unscramble(fileBytes);
     }
 
     /** Compress the data using Gzip
@@ -131,7 +143,7 @@ public class PuzzleFile {
      */
     @SneakyThrows
     public Payload[] splitIntoPayloads (int n) {
-        byte[][] bytePayloads = TransformUtils.splitWithRemainder(fileBytes, n);
+        byte[][] bytePayloads = CryptoUtils.splitWithRemainder(fileBytes, n);
         Payload[] payloads = new Payload[n];
         for (int seqID = 0; seqID < n; seqID++) {
             payloads[seqID] = new Payload(bytePayloads[seqID]);
