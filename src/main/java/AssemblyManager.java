@@ -20,7 +20,7 @@ public class AssemblyManager {
      */
     @SneakyThrows
     public static void fragmentsToFile (String[] args) {
-        /** Constants and debug flags
+        /* Constants and debug flags
          */
         val DEBUGGING = false;
         val FILE_EXTENSION = ".frg";
@@ -28,18 +28,18 @@ public class AssemblyManager {
 
         String PATH = "test0/";
 
-        /** Read in passed (and already sanitized) arguments
+        /* Read in passed (and already sanitized) arguments
          */
         String dirPath = args[1];
         String filePass = args[2];
 
-        /** Generate secret key to be used. Obtain file hash to be used as input in
+        /* Generate secret key to be used. Obtain file hash to be used as input in
          * creating the secret key.
          */
         val fileHash = new String(CryptoUtils.hash(filePass), "UTF8");
-        val secretKey = fileHash.substring(fileHash.length() - 16); //16 is a magic number.
+        val secretKey = fileHash.substring(fileHash.length() - 16); /*16 is a magic number.*/
 
-        /** Read in potential fragments and store in dynamic list
+        /* Read in potential fragments and store in dynamic list
          */
         ArrayList<File> fragmentFiles = new ArrayList<>();
         val dir = new File(dirPath);
@@ -49,7 +49,7 @@ public class AssemblyManager {
             }
         }
         
-        /** Store shards (confirmed fragments of the same file) in dynamic list
+        /* Store shards (confirmed fragments of the same file) in dynamic list
          * by only allowing fragmentFiles of the same IV. IV is set to the first
          * IV that is encountered.
          */
@@ -76,14 +76,14 @@ public class AssemblyManager {
             shards.add(foundShard);
         }
 
-        /** Shards are authenticated and sorted via their HMACs, then the
+        /* Shards are authenticated and sorted via their HMACs, then the
          * Payload (which is still encrypted) is extracted and returned
          * to be stored in a dynamic list.
          */
         Payload[] authenticatedPayloads = sortByHMAC(shards, secretKey);
         AESEncrypter cipher = new AESEncrypter(secretKey, constIV.getValue());
 
-        /** Payloads are decrypted, resulting in unencrypted (yet still
+        /* Payloads are decrypted, resulting in unencrypted (yet still
          * partitioned and scrambled) Payloads.
          */
         ArrayList<Payload> scrambledPayloads = new ArrayList<>();
@@ -92,7 +92,7 @@ public class AssemblyManager {
             scrambledPayloads.add(authenticatedPayloads[i]);
         }
 
-        /** All payloads, (already in order from HMAC processing) are appended
+        /* All payloads, (already in order from HMAC processing) are appended
          * to one another with a byte stream to form the original PuzzleFile
          * object (data still scrambled)
          */
@@ -103,11 +103,11 @@ public class AssemblyManager {
         }
         PuzzleFile composedFile = new PuzzleFile(scramStream.toByteArray());
 
-        /** Unscramble the data of the reproduced original file
+        /* Unscramble the data of the reproduced original file
          */
         composedFile.scramble();
 
-        /** Extract filename (fileInfo) chunk from the reproduced PuzzleFile
+        /* Extract filename (fileInfo) chunk from the reproduced PuzzleFile
          * object. Accomplish this by iterating through the chunk starting
          * from the end and breaking once it reaches the padding.
          */
@@ -124,19 +124,19 @@ public class AssemblyManager {
         }
         byte[] fnameBytes = Arrays.copyOfRange(paddedInfoBytes, infoStartIndex, 256);
 
-        /** Set PuzzleFile equal to the remaining portion of the PuzzleFile
+        /* Set PuzzleFile equal to the remaining portion of the PuzzleFile
          * (no extra chunks).
          */
         composedFile = new PuzzleFile(composedFile.getChunk(0,fileSize-256));
 
-        /** Decompress the file data returning the original file data in its entirety.
+        /* Decompress the file data returning the original file data in its entirety.
          */
         //TODO fix decompression
         //composedFile.decompress();
 
         byte[] originalBytes = composedFile.toByteArray();
 
-        /** Export assembled file to disk and delete used fragmentFiles.
+        /* Export assembled file to disk and delete used fragmentFiles.
          */
         try {
             String name = new String(fnameBytes);
@@ -174,7 +174,8 @@ public class AssemblyManager {
      */
     @SneakyThrows
     public static Payload[] sortByHMAC (ArrayList<Shard> shards, String secretKey) {
-        // <HMAC:Shard> using String representation for key
+        /* <HMAC:Shard> using String representation for key
+         */
         Map<String, Shard> hmacShardMap = new HashMap<>();
 
         for (Shard s : shards) {
@@ -186,14 +187,16 @@ public class AssemblyManager {
         Payload[] sortedPayloads = new Payload[n];
 
         for (int seqID = 0; seqID < n; seqID++) {
-            // generate HMAC cryptographically and use it to create a new HMAC object
-            generatedHMACs[seqID] = new HMAC(CryptoUtils.hash(secretKey.concat(Integer.toString(seqID))));
+            /* generate HMAC cryptographically and use it to create a new HMAC object
+             */
+            generatedHMACs[seqID] = new HMAC(secretKey, seqID);
         }
 
-        // iterate through fragments and find corresponding HMACs
+        /* iterate through fragments and find corresponding HMACs
+         */
         for (int i = 0; i < n; i++) {
             try {
-                Payload retrievedPayload = hmacShardMap.get( generatedHMACs[i].toString() ).getPayload();
+                Payload retrievedPayload = hmacShardMap.get(generatedHMACs[i].toString()).getPayload();
                 sortedPayloads[i] = retrievedPayload;
             }
             catch(NullPointerException npe) {

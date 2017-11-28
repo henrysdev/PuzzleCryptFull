@@ -14,59 +14,60 @@ public class FragmentationManager {
      */
     @SneakyThrows
     public static void fileToFragments (String[] args) {
-        /** Constants and debug flags
+        /* Constants and debug flags
          */
         val DEBUGGING = false;
         val FILE_EXTENSTION = ".frg";
         val DEBUG_PATH = "test0/";
 
-        /** Read in passed (and already sanitized) arguments
+        /* Read in passed (and already sanitized) arguments
          */
         val filepath = args[1];
         val filePass = args[3];
         val n = Integer.parseInt(args[2]);
 
-        /** Generate secret key using file hash to be used as input in
+        /* Generate secret key using file hash to be used as input in
          * creating the secret key.
          */
         String secretKey = new String(CryptoUtils.hash(filePass), "UTF8");
         secretKey = secretKey.substring(secretKey.length() - 16);
 
-        /** Put file data into PuzzleFile object for further processing
+        /* Put file data into PuzzleFile object for further processing
          */
         byte[] fileBytes = IOUtils.readInFile(filepath);
         PuzzleFile wholeFileObj = new PuzzleFile(fileBytes, secretKey);
 
-        /** Obtain filename and put it in padded chunk.
+        /* Obtain filename and put it in padded chunk.
          */
         byte[] filename = IOUtils.extractFilename(filepath).getBytes();
         byte[] fileInfoChunk = buildFilenameChunk(filename);
 
-        /** Compress the file data to minimize storage footprint
+        /* Compress the file data to minimize storage footprint
          */
         //wholeFileObj.compress();
 
-        /** Append filename chunk to PuzzleFile
+        /* Append filename chunk to PuzzleFile
          */
         wholeFileObj.addChunk(fileInfoChunk);
 
-        /** Scramble the PuzzleFile object
+        /* Scramble the PuzzleFile object
          */
         wholeFileObj.scramble();
 
-        /** Split file into n equal-sized Payload objects
+        /* Split file into n equal-sized Payload objects
          */
         Payload[] payloads = wholeFileObj.splitIntoPayloads(n);
 
-        /** Generate Shard objects from payloads
+        /* Generate Shard objects from payloads
          */
         Shard[] shards = formShards(payloads, secretKey);
 
-        /** Write shards to disk
+        /* Write shards to disk
          */
         for (Shard s : shards) {
             try {
-                // generate random 8-character string for file output
+                /* generate random 8-character string for file output
+                 */
                 String name = new String(CryptoUtils.randomBlock(8));
                 name = name.concat(FILE_EXTENSTION);
                 String fullPath = DEBUG_PATH;
@@ -115,23 +116,28 @@ public class FragmentationManager {
      */
     @SneakyThrows
     public static Shard[] formShards (Payload[] payloads, String secretKey) {
-        // create IV that will be constant for all shards
+        /* create IV that will be constant for all shards
+         */
         val aesCipher = new AESEncrypter(secretKey, new byte[0]);
         IV iv = new IV(aesCipher.getInitV());
 
-        // process each payload into a complete fragment, iterating by sequenceID
+        /* process each payload into a complete fragment, iterating by sequenceID
+         */
         int n = payloads.length;
         Shard[] shards = new Shard[n];
         for (int seqID = 0; seqID < n; seqID++) {
             Payload payload = payloads[seqID];
 
-            // encrypt payload
+            /* encrypt payload
+             */
             payload.encrypt(aesCipher);
 
-            // create HMAC
+            /* create HMAC
+             */
             HMAC hmac = new HMAC(secretKey,seqID);
 
-            // store as Shard = Payload + IV + HMAC
+            /* store as Shard = Payload + IV + HMAC
+             */
             Shard shard = new Shard(payload, iv, hmac);
             shards[seqID] = shard;
         }

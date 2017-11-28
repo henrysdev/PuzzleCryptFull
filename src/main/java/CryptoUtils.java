@@ -17,7 +17,7 @@ public class CryptoUtils {
     @SneakyThrows
     public static byte[] scrambleBytes (byte[] fileBytes) {
         int arrLen = fileBytes.length;
-        int step = 1; // additional step for index of chunk swaps
+        int step = 1; /* additional step for index of chunk swaps */
         int chunkSize = 3;
 
         for (int i=0; i < arrLen/2; i++) {

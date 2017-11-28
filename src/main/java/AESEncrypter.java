@@ -11,7 +11,8 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.spec.KeySpec;
 
-// implementation borrowed from https://pastebin.com/YiwbCAW8
+/* implementation borrowed from https://pastebin.com/YiwbCAW8
+ */
 public class AESEncrypter {
 
     private static final byte[] SALT = {

@@ -17,7 +17,8 @@ public class TransformUtils {
         int remainder = fileBytes.length % n;
         int fragSize = ((fileBytes.length - (remainder)) / n);
 
-        // determine random index
+        /* determine random index
+         */
         boolean remainderFlag = false;
         int ri = 0;
         if (remainder > 0) {
@@ -26,7 +27,8 @@ public class TransformUtils {
             ri = rand.nextInt(n - 0);
         }
 
-        // handle offset for largest byte
+        /* handle offset for largest byte
+         */
         byte[][] payloads = new byte[n][];
         int offsetBeg = 0;
         int offsetEnd = fragSize;

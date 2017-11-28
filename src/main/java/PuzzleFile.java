@@ -66,7 +66,8 @@ public class PuzzleFile {
      */
     @SneakyThrows
     public void addChunk (byte[] chunk) {
-        // append file info to file data to form complete file data
+        /* append file info to file data to form complete file data
+         */
         ByteArrayOutputStream compFileDataStream = new ByteArrayOutputStream();
         compFileDataStream.write(fileBytes);
         compFileDataStream.write(chunk);
