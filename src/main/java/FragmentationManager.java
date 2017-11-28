@@ -7,6 +7,11 @@ import java.io.File;
 
 public class FragmentationManager {
 
+    /** Primary driving function. Encompasses the process of
+     * transforming a file to some number of fragment files
+     *
+     * @param args
+     */
     @SneakyThrows
     public static void fileToFragments (String[] args) {
         /** Constants and debug flags

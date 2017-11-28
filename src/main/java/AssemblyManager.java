@@ -13,6 +13,11 @@ import java.util.function.Consumer;
 
 public class AssemblyManager {
 
+    /** Primary driving function for transforming a group of fragment files
+     * back into a single (original) file.
+     *
+     * @param args
+     */
     @SneakyThrows
     public static void fragmentsToFile (String[] args) {
         /** Constants and debug flags
