@@ -7,7 +7,7 @@ public class HMAC {
 
     @SneakyThrows
     public HMAC (String secretKey, int seqID) {
-        this.value = Cryptographics.hash(secretKey.concat(Integer.toString(seqID)));
+        this.value = CryptoUtils.hash(secretKey.concat(Integer.toString(seqID)));
     }
 
     public HMAC (byte[] hmac) {

@@ -36,7 +36,7 @@ public class AssemblyManager {
         /** Generate secret key to be used. Obtain file hash to be used as input in
          * creating the secret key.
          */
-        val fileHash = new String(Cryptographics.hash(filePass), "UTF8");
+        val fileHash = new String(CryptoUtils.hash(filePass), "UTF8");
         val secretKey = fileHash.substring(fileHash.length() - 16); //16 is a magic number.
 
         /** Read in potential fragments and store in dynamic list
@@ -57,7 +57,7 @@ public class AssemblyManager {
         IV constIV = new IV(new byte[0]);
         for (int i = 0; i < fragmentFiles.size(); i++) {
             File frag = fragmentFiles.get(i);
-            PuzzleFile fileFrag = new PuzzleFile(FileOperations.readInFile(frag.getPath()));
+            PuzzleFile fileFrag = new PuzzleFile(IOUtils.readInFile(frag.getPath()));
             int fSize = fileFrag.getSize();
             IV iv = new IV(fileFrag.getChunk(fSize-48,fSize-32));
 
@@ -146,7 +146,7 @@ public class AssemblyManager {
             }
             String fullPath = PATH;
             fullPath = fullPath.concat(name);
-            FileOperations.writeOutFile(fullPath, originalBytes);
+            IOUtils.writeOutFile(fullPath, originalBytes);
             if (!DEBUGGING) {
                 for (File f : fragmentFiles) {
                     if(!f.delete()) {
@@ -187,7 +187,7 @@ public class AssemblyManager {
 
         for (int seqID = 0; seqID < n; seqID++) {
             // generate HMAC cryptographically and use it to create a new HMAC object
-            generatedHMACs[seqID] = new HMAC(Cryptographics.hash(secretKey.concat(Integer.toString(seqID))));
+            generatedHMACs[seqID] = new HMAC(CryptoUtils.hash(secretKey.concat(Integer.toString(seqID))));
         }
 
         // iterate through fragments and find corresponding HMACs

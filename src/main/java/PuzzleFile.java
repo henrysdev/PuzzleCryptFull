@@ -54,7 +54,7 @@ public class PuzzleFile {
 
     @SneakyThrows
     public void scramble () {
-        fileBytes = Cryptographics.scrambleBytes(fileBytes);
+        fileBytes = CryptoUtils.scrambleBytes(fileBytes);
     }
 
     @SneakyThrows
@@ -93,7 +93,7 @@ public class PuzzleFile {
 
     @SneakyThrows
     public Payload[] splitIntoPayloads (int n) {
-        byte[][] bytePayloads = BytePartitioner.splitWithRemainder(fileBytes, n);
+        byte[][] bytePayloads = TransformUtils.splitWithRemainder(fileBytes, n);
         Payload[] payloads = new Payload[n];
         for (int seqID = 0; seqID < n; seqID++) {
             payloads[seqID] = new Payload(bytePayloads[seqID]);

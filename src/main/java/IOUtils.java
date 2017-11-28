@@ -1,12 +1,12 @@
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
-public class FileOperations {
-
+public class IOUtils {
     // read file from path, return as byte array
     public static byte[] readInFile(String filepath) {
 
@@ -34,5 +34,17 @@ public class FileOperations {
         } finally {
             stream.close();
         }
+    }
+
+    public static String extractFilename (String path) throws Exception {
+        File f = new File(path);
+        return f.getName();
+    }
+
+    public static String extractDirectory (String filepath) throws Exception {
+        File f = new File(filepath);
+        //Path p = Paths.get(yourFileNameUri);
+        //Path folder = p.getParent();
+        return "";
     }
 }

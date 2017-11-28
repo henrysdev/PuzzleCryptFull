@@ -29,17 +29,17 @@ public class FragmentationManager {
         /** Generate secret key using file hash to be used as input in
          * creating the secret key.
          */
-        String secretKey = new String(Cryptographics.hash(filePass), "UTF8");
+        String secretKey = new String(CryptoUtils.hash(filePass), "UTF8");
         secretKey = secretKey.substring(secretKey.length() - 16);
 
         /** Put file data into PuzzleFile object for further processing
          */
-        byte[] fileBytes = FileOperations.readInFile(filepath);
+        byte[] fileBytes = IOUtils.readInFile(filepath);
         PuzzleFile wholeFileObj = new PuzzleFile(fileBytes, secretKey);
 
         /** Obtain filename and put it in padded chunk.
          */
-        byte[] filename = PathParser.extractFilename(filepath).getBytes();
+        byte[] filename = IOUtils.extractFilename(filepath).getBytes();
         byte[] fileInfoChunk = buildFilenameChunk(filename);
 
         /** Compress the file data to minimize storage footprint
@@ -67,11 +67,11 @@ public class FragmentationManager {
         for (Shard s : shards) {
             try {
                 // generate random 8-character string for file output
-                String name = new String(Cryptographics.randomBlock(8));
+                String name = new String(CryptoUtils.randomBlock(8));
                 name = name.concat(FILE_EXTENSTION);
                 String fullPath = DEBUG_PATH;
                 fullPath = fullPath.concat(name);
-                FileOperations.writeOutFile(fullPath, s.toFragment());
+                IOUtils.writeOutFile(fullPath, s.toFragment());
             } catch (IOException e) {
                 e.printStackTrace();
             }

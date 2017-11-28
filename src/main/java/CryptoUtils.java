@@ -4,18 +4,9 @@ import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.Random;
 
-public class Cryptographics {
+public class CryptoUtils {
 
     public static byte[] scrambleBytes (byte[] fileBytes) throws Exception {
-
-
-        //byte[] fb = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-        //fileBytes = fb;
-
-        //   fragment ./test0/mydoc.txt 3 henryhenry
-
-        //   assemble ./test0/ henryhenry
-
         int arrLen = fileBytes.length;
         int step = 1; // additional step for index of chunk swaps
         int chunkSize = 3;
