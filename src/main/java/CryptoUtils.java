@@ -118,15 +118,13 @@ public class CryptoUtils {
         return payloads;
     }
 
-    public static long generateLong (byte[] byteArr) {
-        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-        buffer.put(byteArr);
-        buffer.flip();//need flip
-        return buffer.getLong();
-    }
-
+    /** Return a casted-to-long numerical representation
+     * of a String.
+     *
+     * @param str
+     * @return
+     */
     public static long generateLong (String str) {
-        byte[] byteArr = str.getBytes(Charset.forName("UTF-8" ));
         return new Long(str.hashCode());
     }
 }

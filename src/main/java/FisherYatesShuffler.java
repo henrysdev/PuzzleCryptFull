@@ -32,6 +32,12 @@ public class FisherYatesShuffler {
         return fileBytes;
     }
 
+    /** Use record of index swaps to unscramble the data using reverse
+     * Fisher-Yates
+     *
+     * @param fileBytes
+     * @return fileBytes
+     */
     public static byte[] imitatedShuffle (byte[] fileBytes) {
         int randInd;
 
@@ -47,7 +53,11 @@ public class FisherYatesShuffler {
         return fileBytes;
     }
 
-
+    /** Add record to swap record
+     *
+     * @param iInd
+     * @param rInd
+     */
     public static void addSwapRecord (int iInd, int rInd) {
         Integer i = new Integer(iInd);
         Integer randInd = new Integer(rInd);
@@ -55,16 +65,27 @@ public class FisherYatesShuffler {
         swapsRecord.add(swap);
     }
 
+    /** Scramble target data via shuffling. Do not record moves.
+     *
+     * @param fileBytes
+     * @return
+     */
     public static byte[] scramble (byte[] fileBytes) {
         return originalShuffle(fileBytes, false);
     }
 
+    /** Unscramble target data via observing the scramble algorithm,
+     * recording the swaps made, the applying the inverse operations
+     * on the target data.
+     *
+     * @param fileBytes
+     * @return
+     */
     public static byte[] unscramble (byte[] fileBytes) {
         byte[] bullshitBytes = new byte[fileBytes.length];
         System.arraycopy(fileBytes, 0, bullshitBytes, 0, fileBytes.length);
         originalShuffle(bullshitBytes, true);
-        byte[] retBytes = imitatedShuffle(fileBytes);
-        return retBytes;//imitatedShuffle(fileBytes);
+        return imitatedShuffle(fileBytes);
     }
 
 }

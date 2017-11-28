@@ -1,5 +1,3 @@
-import java.util.Arrays;
-
 public class IntegerPair {
     private final Integer a;
     private final Integer b;
