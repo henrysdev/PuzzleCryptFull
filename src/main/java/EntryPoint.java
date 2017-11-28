@@ -1,16 +1,29 @@
 import java.io.File;
 
-public class InOutManager {
-
+public class EntryPoint {
     public static void main (String[] args) throws Exception {
         if (validateArguments(args)) {
             handleInput(args);
         }
         else {
-            System.out.println(DebugLogger.printLogs());
+            System.out.println("Operation failed");
         }
     }
 
+    /** Validate passed in command line arguments for accepted use cases.
+     * Currently accepted use cases:
+     *
+     * Fragment a File
+     * 1 file-to-many files
+     * fragment  /path/to/target/file  number_of_fragments[int]  file_password
+     *
+     * Assemble Fragments
+     * many files-to-1 file
+     * assemble  /path/to/directory/containing/fragments/  file_password
+     *
+     * @param args
+     * @return boolean
+     */
     private static boolean validateArguments (String[] args) {
         switch (args[0]) {
             case "fragment":
@@ -20,10 +33,10 @@ public class InOutManager {
                 if (targetFile.exists() && !targetFile.isDirectory()) {
                     // validate that args[2] = n (int)
                     try {
-                        int n = Integer.parseInt(args[2]);
+                        Integer.parseInt(args[2]);
                     }
                     catch (NumberFormatException invalidN) {
-                        DebugLogger.log("invalid format for argument[2]: " + invalidN.getMessage());
+                        System.out.println("invalid format for argument[2]: " + invalidN.getMessage());
                         return false;
                     }
 
@@ -33,13 +46,13 @@ public class InOutManager {
                         return true;
                     }
                     else {
-                        DebugLogger.log("invalid input for argument[3]: insufficient password complexity");
+                        System.out.println("invalid input for argument[3]: insufficient password complexity");
                         return false;
                     }
 
                 }
                 else {
-                    DebugLogger.log("invalid input for argument[2]: file not found.");
+                    System.out.println("invalid input for argument[2]: file not found.");
                     return false;
                 }
 
@@ -55,33 +68,34 @@ public class InOutManager {
                         return true;
                     }
                     else {
-                        DebugLogger.log("invalid input for argument[2]: insufficient password complexity");
+                        System.out.println("invalid input for argument[2]: insufficient password complexity");
                         return false;
                     }
                 }
                 else {
-                    DebugLogger.log("invalid input for argument[1]: directory not found");
+                    System.out.println("invalid input for argument[1]: directory not found");
                     return false;
                 }
 
 
             default:
                 // return false if first argument does not match any cases
-                DebugLogger.log("invalid input for argument[0]: unrecognized command");
+                System.out.println("invalid input for argument[0]: unrecognized command");
                 return false;
         }
     }
 
+    /** Given validated input, pass arguments to the correct process
+     *
+     * @param args
+     * @throws Exception
+     */
     public static void handleInput (String[] args) throws Exception {
         if (args[0].equals("fragment")) {
             FragmentationManager.fileToFragments(args);
-        } else {
+        } else if (args[0].equals("assemble")) {
             AssemblyManager.fragmentsToFile(args);
         }
-        return;
-    }
-
-    public static void handleOutput (String[] args) {
         return;
     }
 }

@@ -1,19 +1,29 @@
+import lombok.SneakyThrows;
+
 import java.util.Arrays;
 import java.util.Random;
 
 public class TransformUtils {
-    public static byte[][] splitWithRemainder (byte[] fileBytes, int n) throws Exception {
+    /** Given a chunk of data and an integer n, divide this chunk
+     * of data into n equal sized parts, with the remainder tacked on
+     * to a random one of these parts.
+     *
+     * @param fileBytes
+     * @param n
+     * @return payloads
+     */
+    @SneakyThrows
+    public static byte[][] splitWithRemainder (byte[] fileBytes, int n) {
         int remainder = fileBytes.length % n;
         int fragSize = ((fileBytes.length - (remainder)) / n);
 
-        // random index
+        // determine random index
         boolean remainderFlag = false;
         int ri = 0;
         if (remainder > 0) {
             remainderFlag = true;
             Random rand = new Random();
             ri = rand.nextInt(n - 0);
-            //System.out.println(ri);
         }
 
         // handle offset for largest byte

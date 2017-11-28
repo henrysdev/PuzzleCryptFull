@@ -1,3 +1,5 @@
+import lombok.SneakyThrows;
+
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -6,7 +8,14 @@ import java.util.Random;
 
 public class CryptoUtils {
 
-    public static byte[] scrambleBytes (byte[] fileBytes) throws Exception {
+    /** Scrambles bytes in a reversible manner TODO make stronger
+     *
+     * @param fileBytes
+     * @return
+     * @throws Exception
+     */
+    @SneakyThrows
+    public static byte[] scrambleBytes (byte[] fileBytes) {
         int arrLen = fileBytes.length;
         int step = 1; // additional step for index of chunk swaps
         int chunkSize = 3;
@@ -36,8 +45,9 @@ public class CryptoUtils {
         return fileBytes;
     }
 
-    // bit shift logic borrowed from
-    // https://stackoverflow.com/questions/19181411/circular-rotate-issue-with-rotate-left
+    /** bit shift logic borrowed from
+    * https://stackoverflow.com/questions/19181411/circular-rotate-issue-with-rotate-left
+     */
     public static byte rotateRight(byte bits, int shift)
     {
         return (byte)(((bits & 0xff)  >>> shift) | ((bits & 0xff) << (8 - shift)));
@@ -48,14 +58,24 @@ public class CryptoUtils {
         return (byte)(((bits & 0xff) << shift) | ((bits & 0xff) >>> (8 - shift)));
     }
 
-
-    public static byte[] hash (String message) throws Exception {
+    /** Generate the SHA-256 hash for a given string
+     *
+     * @param message
+     * @return hashResult
+     */
+    @SneakyThrows
+    public static byte[] hash (String message) {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] hashRes = digest.digest(message.getBytes(StandardCharsets.UTF_8));
-        return hashRes;
+        byte[] hashResult = digest.digest(message.getBytes(StandardCharsets.UTF_8));
+        return hashResult;
     }
 
-    // generate a randomized block of characters of given length
+    /** Create a random string of data of a given length and return
+     * the byte array representation
+     *
+     * @param blockLen
+     * @return block
+     */
     public static byte[] randomBlock (int blockLen) {
 
         final String alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";

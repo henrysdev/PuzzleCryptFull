@@ -20,14 +20,31 @@ public class PuzzleFile {
         this.secretKey = secretKey;
     }
 
+    /** Alternate constructor for creating an instance of a
+     * pre-generated PuzzleFile object in byte array representation
+     *
+     * @param fileBytes
+     */
     public PuzzleFile (byte[] fileBytes) {
         this.fileBytes = fileBytes;
     }
 
+    /** Return data in a byte array representation
+     *
+     * @return fileBytes
+     */
     public byte[] toByteArray () {
         return fileBytes;
     }
 
+    /** Given two bounding indices (inclusive), copy the chunk
+     * of data between these bounds if possible and return as a
+     * chunk (byte array representation)
+     *
+     * @param startPos
+     * @param endPos
+     * @return chunk
+     */
     @SneakyThrows
     public byte[] getChunk (int startPos, int endPos) {
         byte[] chunk = new byte[ endPos - startPos + 1 ];
@@ -43,6 +60,10 @@ public class PuzzleFile {
         return fileBytes.length;
     }
 
+    /** Append a new chunk of data to the object via a byte stream.
+     *
+     * @param chunk
+     */
     @SneakyThrows
     public void addChunk (byte[] chunk) {
         // append file info to file data to form complete file data
@@ -52,11 +73,17 @@ public class PuzzleFile {
         fileBytes = compFileDataStream.toByteArray();
     }
 
+    /** Scramble the data using the reversible scramble algorithm
+     *
+     */
     @SneakyThrows
     public void scramble () {
         fileBytes = CryptoUtils.scrambleBytes(fileBytes);
     }
 
+    /** Compress the data using Gzip
+     *
+     */
     @SneakyThrows
     public void compress () {
         ByteArrayOutputStream bStream = new ByteArrayOutputStream(fileBytes.length);
@@ -75,6 +102,9 @@ public class PuzzleFile {
         fileBytes = bStream.toByteArray();
     }
 
+    /** Decompress the data using Gzip
+     *
+     */
     @SneakyThrows
     public void decompress () {
         ByteArrayInputStream bStream = new ByteArrayInputStream(fileBytes);
@@ -91,6 +121,13 @@ public class PuzzleFile {
         fileBytes = sb.toString().getBytes();
     }
 
+    /** Given a desired number of fragments to split into, create
+     * this number of payloads and return when completed as an
+     * array of Payloads.
+     *
+     * @param n
+     * @return payloads
+     */
     @SneakyThrows
     public Payload[] splitIntoPayloads (int n) {
         byte[][] bytePayloads = TransformUtils.splitWithRemainder(fileBytes, n);
