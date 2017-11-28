@@ -1,7 +1,10 @@
+import lombok.SneakyThrows;
+
 import java.io.File;
 
 public class EntryPoint {
-    public static void main (String[] args) throws Exception {
+    @SneakyThrows
+    public static void main (String[] args) {
         if (validateArguments(args)) {
             handleInput(args);
         }
@@ -90,7 +93,8 @@ public class EntryPoint {
      * @param args
      * @throws Exception
      */
-    public static void handleInput (String[] args) throws Exception {
+    @SneakyThrows
+    public static void handleInput (String[] args) {
         if (args[0].equals("fragment")) {
             FragmentationManager.fileToFragments(args);
         } else if (args[0].equals("assemble")) {

@@ -1,4 +1,5 @@
 import lombok.Getter;
+import lombok.SneakyThrows;
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 
@@ -24,7 +25,8 @@ public class AESEncrypter {
     @Getter
     private byte[] initV;
 
-    AESEncrypter(String passPhrase, byte[] newIV) throws Exception {
+    @SneakyThrows
+    AESEncrypter(String passPhrase, byte[] newIV) {
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
         KeySpec spec = new PBEKeySpec(passPhrase.toCharArray(), SALT, ITERATION_COUNT, KEY_LENGTH);
         SecretKey tmp = factory.generateSecret(spec);
@@ -42,23 +44,27 @@ public class AESEncrypter {
         dcipher.init(Cipher.DECRYPT_MODE, secret, new IvParameterSpec(initV));
     }
 
-    public String encrypt(final String encrypt) throws Exception {
+    @SneakyThrows
+    public String encrypt(final String encrypt) {
         byte[] bytes = encrypt.getBytes("UTF8");
         byte[] encrypted = encrypt(bytes);
         return new BASE64Encoder().encode(encrypted);
     }
 
-    public byte[] encrypt(final byte[] plain) throws Exception {
+    @SneakyThrows
+    public byte[] encrypt(final byte[] plain) {
         return ecipher.doFinal(plain);
     }
 
-    public String decrypt(final String encrypt) throws Exception {
+    @SneakyThrows
+    public String decrypt(final String encrypt) {
         byte[] bytes = new BASE64Decoder().decodeBuffer(encrypt);
         byte[] decrypted = decrypt(bytes);
         return new String(decrypted, "UTF8");
     }
 
-    public byte[] decrypt(final byte[] encrypt) throws Exception {
+    @SneakyThrows
+    public byte[] decrypt(final byte[] encrypt) {
         return dcipher.doFinal(encrypt);
     }
 }
