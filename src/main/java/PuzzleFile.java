@@ -92,27 +92,12 @@ public class PuzzleFile {
     }
 
     @SneakyThrows
-    public Shard[] toShards (int n) {
-        byte[][] payloads = BytePartitioner.splitWithRemainder(fileBytes, n);
-
-        val aesCipher = new AESEncrypter(secretKey, new byte[0]);
-        IV iv = new IV(aesCipher.getInitV());
-
-        // process each payload into a complete fragment, iterating by sequenceID
-        Shard[] shards = new Shard[n];
+    public Payload[] splitIntoPayloads (int n) {
+        byte[][] bytePayloads = BytePartitioner.splitWithRemainder(fileBytes, n);
+        Payload[] payloads = new Payload[n];
         for (int seqID = 0; seqID < n; seqID++) {
-            // create Payload
-            Payload payload = new Payload(payloads[seqID]);
-            payload.encrypt(aesCipher);
-
-            // create HMAC
-            HMAC hmac = new HMAC(secretKey,seqID);
-
-            // store as Shard = Payload + IV + HMAC
-            Shard shard = new Shard(payload, iv, hmac);
-            shards[seqID] = shard;
+            payloads[seqID] = new Payload(bytePayloads[seqID]);
         }
-
-        return shards;
+        return payloads;
     }
 }

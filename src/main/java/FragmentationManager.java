@@ -32,24 +32,33 @@ public class FragmentationManager {
         byte[] fileBytes = FileOperations.readInFile(filepath);
         PuzzleFile wholeFileObj = new PuzzleFile(fileBytes, secretKey);
 
-        // store fileInfo for eventual reassembly in 256 byte padded array
+        /** Obtain filename and put it in padded chunk.
+         */
         byte[] filename = PathParser.extractFilename(filepath).getBytes();
         byte[] fileInfoChunk = buildFilenameChunk(filename);
 
-        // compress file data
-        //System.out.println("orig filesize = " + wholeFileObj.getSize());
+        /** Compress the file data to minimize storage footprint
+         */
         //wholeFileObj.compress();
 
-        // add fileInfo chunk to PuzzleFile obj
+        /** Append filename chunk to PuzzleFile
+         */
         wholeFileObj.addChunk(fileInfoChunk);
 
-        // scramble file data
+        /** Scramble the PuzzleFile object
+         */
         wholeFileObj.scramble();
 
-        // shatter file into shards
-        Shard[] shards = wholeFileObj.toShards(n);
+        /** Split file into n equal-sized Payload objects
+         */
+        Payload[] payloads = wholeFileObj.splitIntoPayloads(n);
 
-        // write shards to disk
+        /** Generate Shard objects from payloads
+         */
+        Shard[] shards = formShards(payloads, secretKey);
+
+        /** Write shards to disk
+         */
         for (Shard s : shards) {
             try {
                 // generate random 8-character string for file output
@@ -63,7 +72,8 @@ public class FragmentationManager {
             }
         }
 
-        // delete original file
+        /** Delete original File
+         */
         File file = new File(filepath);
         if (!DEBUGGING) {
             if (!file.delete()) {
@@ -73,6 +83,12 @@ public class FragmentationManager {
         System.out.println("Fragmentation Successful");
     }
 
+    /** Given a filename in the form of a byte array, pad in a 256
+     * byte chunk (padded with 0s).
+     *
+     * @param filename
+     * @return fileInfo
+     */
     @SneakyThrows
     public static byte[] buildFilenameChunk (byte[] filename) {
         byte[] padding = new byte[256 - filename.length];
@@ -81,5 +97,31 @@ public class FragmentationManager {
         fileInfoStream.write( filename );
         byte[] fileInfo = fileInfoStream.toByteArray();
         return fileInfo;
+    }
+
+    @SneakyThrows
+    public static Shard[] formShards (Payload[] payloads, String secretKey) {
+        // create IV that will be constant for all shards
+        val aesCipher = new AESEncrypter(secretKey, new byte[0]);
+        IV iv = new IV(aesCipher.getInitV());
+
+        // process each payload into a complete fragment, iterating by sequenceID
+        int n = payloads.length;
+        Shard[] shards = new Shard[n];
+        for (int seqID = 0; seqID < n; seqID++) {
+            Payload payload = payloads[seqID];
+
+            // encrypt payload
+            payload.encrypt(aesCipher);
+
+            // create HMAC
+            HMAC hmac = new HMAC(secretKey,seqID);
+
+            // store as Shard = Payload + IV + HMAC
+            Shard shard = new Shard(payload, iv, hmac);
+            shards[seqID] = shard;
+        }
+
+        return shards;
     }
 }
