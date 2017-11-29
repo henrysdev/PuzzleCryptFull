@@ -5,7 +5,7 @@ import java.util.Collections;
 
 public class FisherYatesShuffler {
 
-    private static ArrayList<IntegerPair> swapsRecord=new ArrayList<>();
+    private static ArrayList<Integer> swapsRecord=new ArrayList<>();
     private static long algoKey;
 
     public FisherYatesShuffler (long key) {
@@ -23,7 +23,7 @@ public class FisherYatesShuffler {
         for (int i = fileBytes.length - 1; i > 0; i--) {
             randInd = random.nextInt(i + 1);
             if (recording) {
-                addSwapRecord(i, randInd);
+                swapsRecord.add(randInd);
             }
             byte temp = fileBytes[randInd];
             fileBytes[randInd] = fileBytes[i];
@@ -40,29 +40,16 @@ public class FisherYatesShuffler {
      */
     public static byte[] imitatedShuffle (byte[] fileBytes) {
         int randInd;
-
+        int fbLength = fileBytes.length;
         for (int n = swapsRecord.size()-1; n > 0; n--) {
-            IntegerPair pair = swapsRecord.get(n-1);
-            randInd = pair.getB();
-            int i   = pair.getA();
+            randInd = swapsRecord.get(n-1);
+            int i   = fbLength - n;
 
             byte temp = fileBytes[randInd];
             fileBytes[randInd] = fileBytes[i];
             fileBytes[i] = temp;
         }
         return fileBytes;
-    }
-
-    /** Add record to swap record
-     *
-     * @param iInd
-     * @param rInd
-     */
-    public static void addSwapRecord (int iInd, int rInd) {
-        Integer i = new Integer(iInd);
-        Integer randInd = new Integer(rInd);
-        IntegerPair swap = new IntegerPair(i, randInd);
-        swapsRecord.add(swap);
     }
 
     /** Scramble target data via shuffling. Do not record moves.
