@@ -5,6 +5,7 @@ import sun.security.provider.SHA;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -41,7 +42,7 @@ public class AssemblyManager {
 
         /* Read in potential fragments and store in dynamic list
          */
-        ArrayList<File> fragmentFiles = new ArrayList<>();
+        List<File> fragmentFiles = new ArrayList<>();
         val dir = new File(dirPath);
         for (File f : dir.listFiles()) {
             if (f.getPath().contains(FILE_EXTENSION) ) {
@@ -53,7 +54,7 @@ public class AssemblyManager {
          * by only allowing fragmentFiles of the same IV. IV is set to the first
          * IV that is encountered.
          */
-        ArrayList<Shard> shards = new ArrayList<>();
+        List<Shard> shards = new ArrayList<>();
         IV constIV = new IV(new byte[0]);
         for (int i = 0; i < fragmentFiles.size(); i++) {
             File frag = fragmentFiles.get(i);
@@ -86,7 +87,7 @@ public class AssemblyManager {
         /* Payloads are decrypted, resulting in unencrypted (yet still
          * partitioned and scrambled) Payloads.
          */
-        ArrayList<Payload> scrambledPayloads = new ArrayList<>();
+        List<Payload> scrambledPayloads = new ArrayList<>();
         for (int i = 0; i < authenticatedPayloads.length; i++) {
             authenticatedPayloads[i].decrypt(cipher);
             scrambledPayloads.add(authenticatedPayloads[i]);
@@ -173,7 +174,7 @@ public class AssemblyManager {
      * @return sortedPayloads
      */
     @SneakyThrows
-    public static Payload[] sortByHMAC (ArrayList<Shard> shards, String secretKey) {
+    public static Payload[] sortByHMAC (List<Shard> shards, String secretKey) {
         /* <HMAC:Shard> using String representation for key
          */
         Map<String, Shard> hmacShardMap = new HashMap<>();

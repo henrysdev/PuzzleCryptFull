@@ -1,12 +1,12 @@
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
-import java.util.Collections;
 
 public class FisherYatesShuffler {
 
-    private static ArrayList<Integer> swapsRecord=new ArrayList<>();
+    private static List<Integer> swapsRecord=new ArrayList<>();
     private static long algoKey;
+    private static int step = 3;
 
     public FisherYatesShuffler (long key) {
         algoKey = key;
@@ -20,14 +20,16 @@ public class FisherYatesShuffler {
     public static byte[] originalShuffle (byte[] fileBytes, boolean recording) {
         int randInd;
         Random random = new Random(algoKey);
-        for (int i = fileBytes.length - 1; i > 0; i--) {
+        for (int i = fileBytes.length - 1; i > 0; i-= step) {
             randInd = random.nextInt(i + 1);
             if (recording) {
                 swapsRecord.add(randInd);
             }
-            byte temp = fileBytes[randInd];
-            fileBytes[randInd] = fileBytes[i];
-            fileBytes[i] = temp;
+            else {
+                byte temp = fileBytes[randInd];
+                fileBytes[randInd] = fileBytes[i];
+                fileBytes[i] = temp;
+            }
         }
         return fileBytes;
     }
@@ -41,10 +43,9 @@ public class FisherYatesShuffler {
     public static byte[] imitatedShuffle (byte[] fileBytes) {
         int randInd;
         int fbLength = fileBytes.length;
-        for (int n = swapsRecord.size()-1; n > 0; n--) {
+        for (int n = swapsRecord.size(); n > 0; n--) {
             randInd = swapsRecord.get(n-1);
-            int i   = fbLength - n;
-
+            int i   = fbLength - (n * step) + (step-1);
             byte temp = fileBytes[randInd];
             fileBytes[randInd] = fileBytes[i];
             fileBytes[i] = temp;

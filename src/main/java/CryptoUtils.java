@@ -9,28 +9,6 @@ import java.util.Random;
 
 public class CryptoUtils {
 
-    /** Fisher-Yates algorithm adapted from
-     * https://stackoverflow.com/questions/1519736/random-shuffling-of-an-array
-     * @param fileBytes
-     * @param algoKey`
-     * @return fileBytes
-     */
-    public static byte[] fisherYates (byte[] fileBytes, long algoKey, boolean record) {
-        int index;
-        Random random = new Random(algoKey);
-        for (int i = fileBytes.length - 1; i > 0; i--)
-        {
-            index = random.nextInt(i + 1);
-            if (index != i)
-            {
-                fileBytes[index] ^= fileBytes[i];
-                fileBytes[i] ^= fileBytes[index];
-                fileBytes[index] ^= fileBytes[i];
-            }
-        }
-        return fileBytes;
-    }
-
     /** bit shift logic borrowed from
     * https://stackoverflow.com/questions/19181411/circular-rotate-issue-with-rotate-left
      */
@@ -116,6 +94,21 @@ public class CryptoUtils {
             offsetEnd += fragSize;
         }
         return payloads;
+    }
+
+    public static int greatestFactor (int n) {
+        int factor = 0;
+        for(int i=2; i<=n; i++) {
+            while(n%i==0) {
+                n = n/i;
+                factor = i;
+            }
+        }
+        if (factor == n) {
+            System.out.println("Prime number of bytes");
+            factor = 1;
+        }
+        return factor;
     }
 
     /** Return a casted-to-long numerical representation
