@@ -76,7 +76,9 @@ public class PuzzleFile {
         fileBytes = compFileDataStream.toByteArray();
     }
 
-    /** Scramble the data using the reversible scramble algorithm
+    /** Scramble the data using the reversible scramble algorithm.
+     * Break data into 100k blocks and scramble each block before
+     * reappending them back together.
      *
      */
     @SneakyThrows
@@ -103,8 +105,9 @@ public class PuzzleFile {
         this.fileBytes = scramStream.toByteArray();
     }
 
-    /** Scramble the data using the reversible scramble algorithm
-     *
+    /** Unscramble the data using the reversible scramble algorithm.
+     * Break file bytes back into blocks and unscramble each block before
+     * reappending them all back together.
      */
     @SneakyThrows
     public void unscramble () {
