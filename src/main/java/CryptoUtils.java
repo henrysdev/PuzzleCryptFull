@@ -62,7 +62,7 @@ public class CryptoUtils {
      * @return payloads
      */
     @SneakyThrows
-    public static byte[][] splitWithRemainder (byte[] fileBytes, int n, boolean randRem) {
+    public static byte[][] splitWithRemainder (byte[] fileBytes, int n, boolean endRem) {
         int remainder = fileBytes.length % n;
         int fragSize = ((fileBytes.length - (remainder)) / n);
 
@@ -76,7 +76,8 @@ public class CryptoUtils {
             ri = rand.nextInt(n - 0);
         }
 
-        if (randRem == false) {
+        // end remainder condition
+        if (endRem) {
             ri = n - 1;
         }
 
