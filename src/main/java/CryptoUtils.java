@@ -1,5 +1,4 @@
 import lombok.SneakyThrows;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.Charset;
@@ -63,7 +62,7 @@ public class CryptoUtils {
      * @return payloads
      */
     @SneakyThrows
-    public static byte[][] splitWithRemainder (byte[] fileBytes, int n) {
+    public static byte[][] splitWithRemainder (byte[] fileBytes, int n, boolean endRem) {
         int remainder = fileBytes.length % n;
         int fragSize = ((fileBytes.length - (remainder)) / n);
 
@@ -75,6 +74,11 @@ public class CryptoUtils {
             remainderFlag = true;
             Random rand = new Random();
             ri = rand.nextInt(n - 0);
+        }
+
+        // end remainder condition
+        if (endRem) {
+            ri = n - 1;
         }
 
         /* handle offset for largest byte
@@ -94,21 +98,6 @@ public class CryptoUtils {
             offsetEnd += fragSize;
         }
         return payloads;
-    }
-
-    public static int greatestFactor (int n) {
-        int factor = 0;
-        for(int i=2; i<=n; i++) {
-            while(n%i==0) {
-                n = n/i;
-                factor = i;
-            }
-        }
-        if (factor == n) {
-            System.out.println("Prime number of bytes");
-            factor = 1;
-        }
-        return factor;
     }
 
     /** Return a casted-to-long numerical representation

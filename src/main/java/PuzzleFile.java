@@ -1,7 +1,9 @@
 import lombok.SneakyThrows;
 import lombok.val;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.zip.*;
 
 import java.io.ByteArrayInputStream;
@@ -74,24 +76,51 @@ public class PuzzleFile {
         fileBytes = compFileDataStream.toByteArray();
     }
 
-    /** Scramble the data using the reversible scramble algorithm
+    /** Scramble the data using the reversible scramble algorithm.
+     * Break data into 100kb blocks and scramble each block before
+     * reappending them back together.
      *
      */
     @SneakyThrows
     public void scramble () {
         long algoKey = CryptoUtils.generateLong(secretKey);
         FisherYatesShuffler shuffler = new FisherYatesShuffler(algoKey);
-        this.fileBytes = shuffler.scramble(fileBytes);
+
+        byte[][] blocks = obtainScrambleBlocks();
+
+        // scramble and reappend each block
+        ByteArrayOutputStream scramStream = new ByteArrayOutputStream();
+        fileBytes = new byte[0]; // temp mem free
+        for (int i = 0; i < blocks.length; i++) {
+            byte[] currLoad = shuffler.scramble(blocks[i]);
+            scramStream.write(currLoad);
+            blocks[i] = new byte[0]; // mem free
+        }
+
+        this.fileBytes = scramStream.toByteArray();
     }
 
-    /** Scramble the data using the reversible scramble algorithm
-     *
+    /** Unscramble the data using the reversible scramble algorithm.
+     * Break file bytes back into blocks and unscramble each block before
+     * reappending them all back together.
      */
     @SneakyThrows
     public void unscramble () {
         long algoKey = CryptoUtils.generateLong(secretKey);
         FisherYatesShuffler shuffler = new FisherYatesShuffler(algoKey);
-        this.fileBytes = shuffler.unscramble(fileBytes);
+
+        byte[][] blocks = obtainScrambleBlocks();
+
+        // unscramble and reappend blocks
+        ByteArrayOutputStream unscramStream = new ByteArrayOutputStream();
+        fileBytes = new byte[0]; // temp mem free
+        for (int i = 0; i < blocks.length; i++) {
+            byte[] currLoad = shuffler.unscramble(blocks[i]);
+            unscramStream.write(currLoad);
+            blocks[i] = new byte[0]; // temp mem free
+        }
+
+        this.fileBytes = unscramStream.toByteArray();
     }
 
     /** Compress the data using Gzip
@@ -143,11 +172,22 @@ public class PuzzleFile {
      */
     @SneakyThrows
     public Payload[] splitIntoPayloads (int n) {
-        byte[][] bytePayloads = CryptoUtils.splitWithRemainder(fileBytes, n);
+        byte[][] bytePayloads = CryptoUtils.splitWithRemainder(fileBytes, n, false);
         Payload[] payloads = new Payload[n];
         for (int seqID = 0; seqID < n; seqID++) {
             payloads[seqID] = new Payload(bytePayloads[seqID]);
         }
         return payloads;
+    }
+
+    public byte[][] obtainScrambleBlocks () {
+        // determine block count
+        int blockCount = fileBytes.length / 100000;
+        if (blockCount == 0)
+            blockCount = 1;
+
+        // split file data back into blocks
+        byte[][] blocks = CryptoUtils.splitWithRemainder(fileBytes, blockCount, true);
+        return blocks;
     }
 }

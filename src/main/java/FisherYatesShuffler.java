@@ -70,6 +70,7 @@ public class FisherYatesShuffler {
      * @return
      */
     public static byte[] unscramble (byte[] fileBytes) {
+        swapsRecord.clear();
         byte[] bullshitBytes = new byte[fileBytes.length];
         System.arraycopy(fileBytes, 0, bullshitBytes, 0, fileBytes.length);
         originalShuffle(bullshitBytes, true);
