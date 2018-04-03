@@ -1,7 +1,9 @@
 import lombok.SneakyThrows;
 import lombok.val;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.zip.*;
 
 import java.io.ByteArrayInputStream;
@@ -20,14 +22,31 @@ public class PuzzleFile {
         this.secretKey = secretKey;
     }
 
+    /** Alternate constructor for creating an instance of a
+     * pre-generated PuzzleFile object in byte array representation
+     *
+     * @param fileBytes
+     */
     public PuzzleFile (byte[] fileBytes) {
         this.fileBytes = fileBytes;
     }
 
+    /** Return data in a byte array representation
+     *
+     * @return fileBytes
+     */
     public byte[] toByteArray () {
-        return fileBytes;
+        return this.fileBytes;
     }
 
+    /** Given two bounding indices (inclusive), copy the chunk
+     * of data between these bounds if possible and return as a
+     * chunk (byte array representation)
+     *
+     * @param startPos
+     * @param endPos
+     * @return chunk
+     */
     @SneakyThrows
     public byte[] getChunk (int startPos, int endPos) {
         byte[] chunk = new byte[ endPos - startPos + 1 ];
@@ -43,20 +62,70 @@ public class PuzzleFile {
         return fileBytes.length;
     }
 
+    /** Append a new chunk of data to the object via a byte stream.
+     *
+     * @param chunk
+     */
     @SneakyThrows
     public void addChunk (byte[] chunk) {
-        // append file info to file data to form complete file data
+        /* append file info to file data to form complete file data
+         */
         ByteArrayOutputStream compFileDataStream = new ByteArrayOutputStream();
         compFileDataStream.write(fileBytes);
         compFileDataStream.write(chunk);
         fileBytes = compFileDataStream.toByteArray();
     }
 
+    /** Scramble the data using the reversible scramble algorithm.
+     * Break data into 100kb blocks and scramble each block before
+     * reappending them back together.
+     *
+     */
     @SneakyThrows
     public void scramble () {
-        fileBytes = Cryptographics.scrambleBytes(fileBytes);
+        long algoKey = CryptoUtils.generateLong(secretKey);
+        FisherYatesShuffler shuffler = new FisherYatesShuffler(algoKey);
+
+        byte[][] blocks = obtainScrambleBlocks();
+
+        // scramble and reappend each block
+        ByteArrayOutputStream scramStream = new ByteArrayOutputStream();
+        fileBytes = new byte[0]; // temp mem free
+        for (int i = 0; i < blocks.length; i++) {
+            byte[] currLoad = shuffler.scramble(blocks[i]);
+            scramStream.write(currLoad);
+            blocks[i] = new byte[0]; // mem free
+        }
+
+        this.fileBytes = scramStream.toByteArray();
     }
 
+    /** Unscramble the data using the reversible scramble algorithm.
+     * Break file bytes back into blocks and unscramble each block before
+     * reappending them all back together.
+     */
+    @SneakyThrows
+    public void unscramble () {
+        long algoKey = CryptoUtils.generateLong(secretKey);
+        FisherYatesShuffler shuffler = new FisherYatesShuffler(algoKey);
+
+        byte[][] blocks = obtainScrambleBlocks();
+
+        // unscramble and reappend blocks
+        ByteArrayOutputStream unscramStream = new ByteArrayOutputStream();
+        fileBytes = new byte[0]; // temp mem free
+        for (int i = 0; i < blocks.length; i++) {
+            byte[] currLoad = shuffler.unscramble(blocks[i]);
+            unscramStream.write(currLoad);
+            blocks[i] = new byte[0]; // temp mem free
+        }
+
+        this.fileBytes = unscramStream.toByteArray();
+    }
+
+    /** Compress the data using Gzip
+     *
+     */
     @SneakyThrows
     public void compress () {
         ByteArrayOutputStream bStream = new ByteArrayOutputStream(fileBytes.length);
@@ -75,6 +144,9 @@ public class PuzzleFile {
         fileBytes = bStream.toByteArray();
     }
 
+    /** Decompress the data using Gzip
+     *
+     */
     @SneakyThrows
     public void decompress () {
         ByteArrayInputStream bStream = new ByteArrayInputStream(fileBytes);
@@ -91,28 +163,31 @@ public class PuzzleFile {
         fileBytes = sb.toString().getBytes();
     }
 
+    /** Given a desired number of fragments to split into, create
+     * this number of payloads and return when completed as an
+     * array of Payloads.
+     *
+     * @param n
+     * @return payloads
+     */
     @SneakyThrows
-    public Shard[] toShards (int n) {
-        byte[][] payloads = BytePartitioner.splitWithRemainder(fileBytes, n);
-
-        val aesCipher = new AESEncrypter(secretKey, new byte[0]);
-        IV iv = new IV(aesCipher.getInitV());
-
-        // process each payload into a complete fragment, iterating by sequenceID
-        Shard[] shards = new Shard[n];
+    public Payload[] splitIntoPayloads (int n) {
+        byte[][] bytePayloads = CryptoUtils.splitWithRemainder(fileBytes, n, false);
+        Payload[] payloads = new Payload[n];
         for (int seqID = 0; seqID < n; seqID++) {
-            // create Payload
-            Payload payload = new Payload(payloads[seqID]);
-            payload.encrypt(aesCipher);
-
-            // create HMAC
-            HMAC hmac = new HMAC(secretKey,seqID);
-
-            // store as Shard = Payload + IV + HMAC
-            Shard shard = new Shard(payload, iv, hmac);
-            shards[seqID] = shard;
+            payloads[seqID] = new Payload(bytePayloads[seqID]);
         }
+        return payloads;
+    }
 
-        return shards;
+    public byte[][] obtainScrambleBlocks () {
+        // determine block count
+        int blockCount = fileBytes.length / 100000;
+        if (blockCount == 0)
+            blockCount = 1;
+
+        // split file data back into blocks
+        byte[][] blocks = CryptoUtils.splitWithRemainder(fileBytes, blockCount, true);
+        return blocks;
     }
 }

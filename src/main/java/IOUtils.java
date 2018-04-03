@@ -1,13 +1,17 @@
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
-public class FileOperations {
-
-    // read file from path, return as byte array
+public class IOUtils {
+    /** Try to read file from given path and return as byte array
+     *
+     * @param filepath
+     * @return
+     */
     public static byte[] readInFile(String filepath) {
 
         byte[] data;
@@ -21,6 +25,13 @@ public class FileOperations {
         return data;
     }
 
+    /** Given a target filepath and data to write to said file,
+     * try to write file data to disk at this location.
+     *
+     * @param filepath
+     * @param outputData
+     * @throws IOException
+     */
     public static void writeOutFile(String filepath, byte[] outputData) throws IOException {
         FileOutputStream stream = null;
         try {
@@ -34,5 +45,16 @@ public class FileOperations {
         } finally {
             stream.close();
         }
+    }
+
+    /** Given a path to a file, extract just the filename
+     *
+     * @param path
+     * @return filename
+     * @throws Exception
+     */
+    public static String extractFilename (String path) throws Exception {
+        File f = new File(path);
+        return f.getName();
     }
 }

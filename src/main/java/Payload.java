@@ -17,11 +17,19 @@ public class Payload {
         return value.length;
     }
 
+    /** Encrypt payload locally
+     *
+     * @param aesCipher
+     */
     @SneakyThrows
     public void encrypt (AESEncrypter aesCipher) {
         value = aesCipher.encrypt(value);
     }
 
+    /** Decrypt payload locally
+     *
+     * @param aesCipher
+     */
     @SneakyThrows
     public void decrypt (AESEncrypter aesCipher) {
         value = aesCipher.decrypt(value);
