@@ -2,7 +2,7 @@ import lombok.SneakyThrows;
 
 import java.io.File;
 
-public class EntryPoint {
+public class PuzzleCrypt {
     @SneakyThrows
     public static void main (String[] args) {
         String response = validateArguments(args);
