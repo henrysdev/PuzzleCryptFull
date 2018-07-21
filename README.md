@@ -10,9 +10,9 @@ Learn all about it here: http://henrysprojects.net/projects/file-frag-proto.html
   
 #### Fragment a file:  
 ```
-\$ java PuzzleCrypt fragment \<target-file> \<num-fragments> \<reassembly-password>
+$ java PuzzleCrypt fragment <target-file> <num-fragments> <reassembly-password>
 ```
 #### Reassemble a file:  
 ```
-\$ java PuzzleCrypt assemble \<fragments-directory> \<reassembly-password>
+$ java PuzzleCrypt assemble <fragments-directory> <reassembly-password>
 ```
