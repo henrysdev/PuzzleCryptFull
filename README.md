@@ -8,8 +8,8 @@ Learn all about it here: http://henrysprojects.net/projects/file-frag-proto.html
 
 ### Usage  
   
-####Fragment a file:  
+#### Fragment a file:  
 \$ java PuzzleCrypt fragment <target-file> <num-fragments> <reassembly-password>
   
-####Reassemble a file:  
+#### Reassemble a file:  
 \$ java PuzzleCrypt assemble <fragments-directory> <reassembly-password>
