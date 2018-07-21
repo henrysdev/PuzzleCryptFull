@@ -3,7 +3,7 @@
  target="_blank"><img src="http://img.youtube.com/vi/hrrwGcQrlok/0.jpg" 
 alt="PuzzleCrypt Demonstration" width="512" height="384" border="10" /></a>
 
-An application for secure file fragmentation and reassembly. 
+An application for secure file fragmentation and reassembly. <br/>
 Learn all about it here: http://henrysprojects.net/projects/file-frag-proto.html
 
 ### Usage  
