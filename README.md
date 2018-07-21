@@ -6,10 +6,10 @@ alt="PuzzleCrypt Demonstration" width="512" height="384" border="10" /></a>
 An application for secure file fragmentation and reassembly. 
 Learn all about it here: http://henrysprojects.net/projects/file-frag-proto.html
 
-### Usage
-
-####Fragment a file:
+### Usage  
+  
+####Fragment a file:  
 \$ java PuzzleCrypt fragment <target-file> <num-fragments> <reassembly-password>
-
-####Reassemble a file:
+  
+####Reassemble a file:  
 \$ java PuzzleCrypt assemble <fragments-directory> <reassembly-password>
